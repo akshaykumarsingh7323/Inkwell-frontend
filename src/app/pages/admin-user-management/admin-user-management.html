@@ -1,0 +1,231 @@
+<main class="management-content">
+  <div class="page-header">
+    <div class="header-main">
+      <h1 class="page-title">User Directory</h1>
+      <p class="page-subtitle">Manage system access, roles, and security policies for all registered members.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="loadUsers()">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:16px"><path d="M1 8a7 7 0 1014 0A7 7 0 101 8M8 4v8M4 8h8"/></svg>
+        Refresh
+      </button>
+    </div>
+  </div>
+
+  <div class="filter-bar">
+    <div class="filter-group">
+      <button class="filter-chip" [class.active]="currentRoleFilter() === 'ALL'" (click)="currentRoleFilter.set('ALL')">Total Users</button>
+      <button class="filter-chip" [class.active]="currentRoleFilter() === 'ADMIN'" (click)="currentRoleFilter.set('ADMIN')">Admins</button>
+      <button class="filter-chip" [class.active]="currentRoleFilter() === 'AUTHOR'" (click)="currentRoleFilter.set('AUTHOR')">Authors</button>
+      <button class="filter-chip" [class.active]="currentRoleFilter() === 'READER'" (click)="currentRoleFilter.set('READER')">Readers</button>
+    </div>
+    <div class="filter-info" *ngIf="!isLoading()">
+      {{ filteredUsers().length }} accounts active
+    </div>
+  </div>
+
+  <div class="data-panel">
+    <div *ngIf="errorMessage()" class="error-banner">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:18px"><circle cx="8" cy="8" r="7"/><path d="M8 5v4M8 11h.01"/></svg>
+      {{ errorMessage() }}
+    </div>
+
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Identity</th>
+            <th>Privileges</th>
+            <th>System Status</th>
+            <th>Assignment</th>
+            <th style="text-align: right;">Operations</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of filteredUsers()" class="fade-in">
+            <td>
+              <div class="user-info">
+                <div class="user-avatar">
+                  {{ user.fullName?.charAt(0) || user.username.charAt(0) }}
+                </div>
+                <div class="user-details">
+                  <div class="user-name">{{ user.fullName || user.username }}</div>
+                  <div class="user-email">{{ user.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="role-badge" [ngClass]="user.role.toLowerCase()">
+                {{ user.role }}
+              </span>
+            </td>
+            <td>
+              <div class="status-pill" [class.active]="user.active !== false">
+                <span class="dot"></span>
+                {{ user.active !== false ? 'Verified' : 'Suspended' }}
+              </div>
+            </td>
+            <td>
+              <select class="role-selector" [value]="user.role" (change)="updateRole(user, $event)">
+                <option value="READER">READER</option>
+                <option value="AUTHOR">AUTHOR</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+            </td>
+            <td style="text-align: right;">
+              <div class="action-group">
+                <button class="action-link-btn view" (click)="viewUser(user)">Profile</button>
+                <button 
+                  class="action-link-btn" 
+                  [class.deactivate]="user.active !== false"
+                  [class.activate]="user.active === false"
+                  [class.disabled]="user.role === 'ADMIN' && user.active !== false"
+                  (click)="updateStatus(user, !(user.active !== false))"
+                >
+                  {{ user.active !== false ? 'Restrict' : 'Restore' }}
+                </button>
+                <button 
+                  class="action-link-btn delete" 
+                  [class.disabled]="user.role === 'ADMIN'"
+                  (click)="requestDelete(user)"
+                >
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="!isLoading() && filteredUsers().length === 0">
+            <td colspan="5" class="empty-state">
+              <div class="empty-icon">🛸</div>
+              <div class="empty-text">No matching identities found in the cosmic void.</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div *ngIf="isLoading()" class="loading-overlay">
+      <div class="loader"></div>
+      <p>QUANTUM SYNC IN PROGRESS...</p>
+    </div>
+  </div>
+
+  <!-- Details Drawer -->
+  <div class="details-drawer" [class.open]="selectedUser()">
+    <div class="drawer-overlay" (click)="closeDetails()"></div>
+    <div class="drawer-content" *ngIf="selectedUser() as user">
+      <div class="drawer-header">
+        <h3>Identity Metadata</h3>
+        <button class="close-btn" (click)="closeDetails()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      
+      <div class="drawer-body">
+        <div class="user-profile-header">
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+              {{ user.fullName?.charAt(0) || user.username.charAt(0) }}
+            </div>
+            <div class="status-indicator" [class.active]="user.active !== false"></div>
+          </div>
+          <div class="profile-info">
+            <h2 class="profile-name">{{ user.fullName || user.username }}</h2>
+            <div class="profile-badges">
+              <span class="role-badge" [ngClass]="user.role.toLowerCase()">{{ user.role }}</span>
+              <span class="id-badge">ID #{{ user.userId }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="detail-item">
+            <label>Registered Identity</label>
+            <div class="detail-value">
+              <span class="material-symbols-outlined">person</span>
+              {{ user.username }}
+            </div>
+          </div>
+
+          <div class="detail-item">
+            <label>Primary Communication</label>
+            <div class="detail-value">
+              <span class="material-symbols-outlined">mail</span>
+              {{ user.email }}
+            </div>
+          </div>
+
+          <div class="detail-item full-width">
+            <label>System Authorization</label>
+            <div class="detail-value status-row">
+              <span class="status-pill" [class.active]="user.active !== false">
+                <span class="dot"></span>
+                {{ user.active !== false ? 'Protocol Active' : 'Protocol Suspended' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="detail-item full-width" *ngIf="user.bio">
+            <label>Profile Bio Fragment</label>
+            <div class="bio-box">{{ user.bio }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="drawer-footer">
+        <button class="outline-btn" (click)="closeDetails()">Dismiss</button>
+        
+        <button *ngIf="user.role === 'AUTHOR' || user.role === 'ADMIN'" 
+                class="outline-btn secondary-btn" 
+                (click)="viewAuthorPosts(user.userId)">
+          View Publications
+        </button>
+
+        <button 
+          class="outline-btn delete-btn" 
+          [class.disabled]="user.role === 'ADMIN'"
+          (click)="requestDelete(user)"
+        >
+          Delete Account
+        </button>
+
+        <button 
+          class="primary-btn" 
+          [class.disabled]="user.role === 'ADMIN' && user.active !== false"
+          (click)="updateStatus(user, !(user.active !== false))"
+        >
+          {{ user.active !== false ? 'Terminate Access' : 'Restore Access' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal()">
+  <div class="modal-card">
+    <div class="modal-icon">⚠️</div>
+    <h2 class="modal-title">Delete Account</h2>
+    <p class="modal-text">
+      Are you sure you want to permanently delete <strong>{{ userToDelete()?.fullName || userToDelete()?.username }}</strong>? 
+      This action will trigger an automated notification to the user and is irreversible in the cosmic registry.
+    </p>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" (click)="cancelDelete()">Cancel</button>
+      <button class="modal-btn confirm" (click)="confirmDelete()">Yes, Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Admin Protection Modal -->
+<div class="modal-overlay protection" *ngIf="showProtectionModal()">
+  <div class="modal-card">
+    <div class="modal-icon protection">🛡️</div>
+    <h2 class="modal-title">{{ protectionMessage().title }}</h2>
+    <p class="modal-text">{{ protectionMessage().message }}</p>
+    <div class="modal-actions">
+      <button class="modal-btn confirm protection" (click)="closeProtectionModal()">Ok</button>
+    </div>
+  </div>
+</div>

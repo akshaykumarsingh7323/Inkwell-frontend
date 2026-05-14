@@ -1,0 +1,23 @@
+<div class="engagement-bar" [class.sticky]="isSticky">
+  <div class="engagement-inner">
+    <button type="button" class="engagement-btn like-btn" [class.active]="isLiked" (click)="$event.stopPropagation(); toggleLike()" title="Like">
+      <span class="material-symbols-outlined">favorite</span>
+      <span class="count">{{ likesCount }}</span>
+    </button>
+
+    <button type="button" class="engagement-btn" (click)="$event.stopPropagation(); scrollToComments()" title="Comments">
+      <span class="material-symbols-outlined">chat_bubble_outline</span>
+      <span class="count">{{ commentsCount }}</span>
+    </button>
+
+    <div class="divider"></div>
+
+    <button type="button" class="engagement-btn" [class.active]="isBookmarked" (click)="$event.stopPropagation(); toggleBookmark()" title="Bookmark">
+      <span class="material-symbols-outlined">{{ isBookmarked ? 'bookmark' : 'bookmark_border' }}</span>
+    </button>
+
+    <button type="button" class="engagement-btn" (click)="$event.stopPropagation(); sharePost()" title="Share">
+      <span class="material-symbols-outlined">share</span>
+    </button>
+  </div>
+</div>

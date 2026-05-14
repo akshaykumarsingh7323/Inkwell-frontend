@@ -1,0 +1,5 @@
+/* Styles handled by global auth-* classes in index.css */
+:host { 
+    display: block; 
+    min-height: 100vh;
+}

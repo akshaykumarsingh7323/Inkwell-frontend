@@ -1,0 +1,175 @@
+<main class="dashboard-content">
+  <div *ngIf="isLoading" class="spinner-overlay">
+    <div class="spinner"></div>
+    <p style="color: var(--text-secondary); font-family: 'Sora', sans-serif; font-size: 12px; letter-spacing: 0.05em;">SYNCHRONIZING STUDIO METRICS...</p>
+  </div>
+
+  <div *ngIf="!isLoading && errorMessage" class="dash-card error-card">
+    <p>{{ errorMessage }}</p>
+    <button class="icon-btn" (click)="retrySync()">Retry Sync</button>
+  </div>
+
+  <div *ngIf="!isLoading && !errorMessage">
+    <div class="page-header">
+      <div class="page-eyebrow">Author Control Center</div>
+      <h1 class="page-title">Studio Overview</h1>
+      <p class="page-subtitle"><span class="live-dot"></span>Live · Monitor your content performance and audience reach</p>
+    </div>
+
+    <div class="stats-grid">
+      <!-- Earnings Card (NEW) -->
+      <div class="stat-card gold-tint">
+        <div class="stat-card-inner">
+          <div class="stat-main">
+            <span class="stat-label">Total Earnings</span>
+            <div class="stat-num">₹{{ totalEarnings | number:'1.2-2' }}</div>
+            <div class="stat-meta"><span class="status-indicator live" style="background: #d4af37;"></span> REVENUE</div>
+          </div>
+          <div class="stat-icon-box">💰</div>
+        </div>
+        <div class="stat-footer-bar"><div class="stat-progress" style="width: 100%; background: #d4af37;"></div></div>
+      </div>
+
+      <div class="stat-card green-tint" [routerLink]="['/my-posts']" [queryParams]="{status: 'PUBLISHED'}" style="cursor: pointer;">
+        <div class="stat-card-inner">
+          <div class="stat-main">
+            <span class="stat-label">Published Posts</span>
+            <div class="stat-num">{{ totalPublished }}</div>
+            <div class="stat-meta"><span class="status-indicator live"></span> LIVE MONITORING</div>
+          </div>
+          <div class="stat-icon-box">📊</div>
+        </div>
+        <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalPublished / 20) * 100"></div></div>
+      </div>
+
+      <div class="stat-card violet-tint">
+        <div class="stat-card-inner">
+          <div class="stat-main">
+            <span class="stat-label">Total Views</span>
+            <div class="stat-num">{{ totalViews }}</div>
+            <div class="stat-meta"><span class="status-indicator success"></span> REACH METRICS</div>
+          </div>
+          <div class="stat-icon-box">👁️</div>
+        </div>
+        <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalViews / 1000) * 100"></div></div>
+      </div>
+
+      <div class="stat-card pink-tint">
+        <div class="stat-card-inner">
+          <div class="stat-main">
+            <span class="stat-label">Total Likes</span>
+            <div class="stat-num">{{ totalLikes }}</div>
+            <div class="stat-meta"><span class="status-indicator live" style="background: #ec4899;"></span> ENGAGEMENT</div>
+          </div>
+          <div class="stat-icon-box">❤️</div>
+        </div>
+        <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalLikes / 100) * 100" style="background: #ec4899;"></div></div>
+      </div>
+
+      <div class="stat-card blue-tint" [routerLink]="['/my-posts']" [queryParams]="{status: 'UNPUBLISHED'}" style="cursor: pointer;">
+        <div class="stat-card-inner">
+          <div class="stat-main">
+            <span class="stat-label">Unpublished</span>
+            <div class="stat-num">{{ totalUnpublished }}</div>
+            <div class="stat-meta"><span class="status-indicator active"></span> ARCHIVE</div>
+          </div>
+          <div class="stat-icon-box">📂</div>
+        </div>
+        <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalUnpublished / 10) * 100"></div></div>
+      </div>
+
+      <div class="stat-card orange-tint" [routerLink]="['/my-posts']" [queryParams]="{status: 'DRAFT'}" style="cursor: pointer;">
+        <div class="stat-card-inner">
+          <div class="stat-main">
+            <span class="stat-label">Drafts</span>
+            <div class="stat-num">{{ totalDrafts }}</div>
+            <div class="stat-meta"><span class="status-indicator warning"></span> IN PROGRESS</div>
+          </div>
+          <div class="stat-icon-box">✏️</div>
+        </div>
+        <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalDrafts / 10) * 100"></div></div>
+      </div>
+    </div>
+
+    <div class="section-grid">
+      <!-- Premium Content Performance (NEW) -->
+      <div class="panel" *ngIf="premiumPosts.length > 0">
+        <div class="panel-header">
+          <span class="panel-title">Premium Content Performance</span>
+          <span class="panel-badge">MONETIZED</span>
+        </div>
+        <div class="panel-body">
+          <div class="activity-item" *ngFor="let post of premiumPosts">
+            <div class="activity-dot gold"></div>
+            <div style="flex: 1;">
+              <div class="activity-text">
+                <strong>{{ post.title }}</strong>
+              </div>
+              <div class="activity-time">Price: ₹{{ post.price }} | Views: {{ post.viewCount }}</div>
+            </div>
+            <span class="earnings-pill">₹{{ (post.viewCount * 0.1) | number:'1.0-0' }} est.</span>
+          </div>
+          <div *ngIf="premiumPosts.length === 0" style="padding: 20px; text-align: center; color: var(--on-surface-muted);">
+            No premium posts yet.
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Drafts Panel -->
+      <div class="panel" *ngIf="recentDrafts.length > 0">
+        <div class="panel-header">
+          <span class="panel-title">Continue Writing (Drafts)</span>
+          <span class="panel-badge">RECENT</span>
+        </div>
+        <div class="panel-body">
+          <div class="activity-item" *ngFor="let draft of recentDrafts" [routerLink]="['/edit-post', draft.postId]" style="cursor: pointer;">
+            <div class="activity-dot orange"></div>
+            <div style="flex: 1;">
+              <div class="activity-text">
+                <strong>{{ draft.title || '(Untitled Draft)' }}</strong>
+              </div>
+              <div class="activity-time">Last updated {{ draft.updatedAt | date:'mediumDate' }}</div>
+            </div>
+            <span class="material-symbols-outlined" style="font-size: 18px; opacity: 0.4;">chevron_right</span>
+          </div>
+          <a routerLink="/my-posts" class="panel-footer-link">View all my posts →</a>
+        </div>
+      </div>
+
+      <!-- Transaction History (NEW) -->
+      <div class="panel wide-panel" style="grid-column: 1 / -1;">
+        <div class="panel-header">
+          <span class="panel-title">Sales & Transaction History</span>
+          <span class="panel-badge">EARNINGS SPLIT</span>
+        </div>
+        <div class="panel-body">
+          <div *ngIf="recentTransactions.length === 0" style="padding: 40px; text-align: center; color: var(--on-surface-muted);">
+            No sales recorded yet. Premium content revenue will appear here.
+          </div>
+          <div class="transaction-history-container" *ngIf="recentTransactions.length > 0" style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="text-align: left; border-bottom: 1px solid var(--border); color: var(--on-surface-muted); font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+                  <th style="padding: 12px 8px;">ORDER ID</th>
+                  <th style="padding: 12px 8px;">DATE</th>
+                  <th style="padding: 12px 8px;">TOTAL PAID</th>
+                  <th style="padding: 12px 8px;">COMMISSION</th>
+                  <th style="padding: 12px 8px;">YOUR EARNING</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let tx of recentTransactions" style="border-bottom: 1px solid var(--border-subtle);">
+                  <td style="padding: 12px 8px; font-family: 'JetBrains Mono', monospace;">#{{ tx.orderId }}</td>
+                  <td style="padding: 12px 8px;">{{ tx.createdAt | date:'MMM d, HH:mm' }}</td>
+                  <td style="padding: 12px 8px;">₹{{ tx.totalAmount | number:'1.2-2' }}</td>
+                  <td style="padding: 12px 8px; color: #ff4d4d;">-₹{{ tx.adminCommission | number:'1.2-2' }}</td>
+                  <td style="padding: 12px 8px; color: #10b981; font-weight: 700;">₹{{ tx.authorEarning | number:'1.2-2' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

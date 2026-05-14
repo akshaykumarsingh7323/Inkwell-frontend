@@ -1,0 +1,96 @@
+<main class="management-content">
+  <div class="page-header">
+    <div class="page-eyebrow">Insights</div>
+    <h1 class="page-title">Analytics</h1>
+    <p class="page-subtitle">{{ isAdminView ? 'Platform-wide visibility into audience reach and author activity.' : 'Deep dive into your editorial reach and engagement metrics.' }}</p>
+  </div>
+  <div class="empty-state" *ngIf="isLoading">Loading analytics...</div>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="stats-grid">
+      <div class="stat-card" *ngFor="let stat of stats">
+        <p class="stat-label">{{ stat.label }}</p>
+        <div class="stat-value-group">
+          <span class="stat-value">{{ stat.value }}</span>
+          <span class="stat-trend" [ngClass]="stat.trendType">{{ stat.trend }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="charts-layout">
+      <div class="chart-main">
+        <div class="chart-header">
+          <h3 class="chart-title">Daily Engagement Trend</h3>
+          <div class="chart-legend">
+            <div class="legend-item"><span class="legend-dot primary"></span> Views</div>
+            <div class="legend-item"><span class="legend-dot secondary"></span> Goal</div>
+          </div>
+        </div>
+        <div class="visual-chart">
+          <svg width="100%" height="200" viewBox="0 0 1000 200" preserveAspectRatio="none">
+            <path d="M0,180 Q100,160 200,100 T400,120 T600,60 T800,90 T1000,40" fill="none" stroke="var(--primary-color)" stroke-width="3"></path>
+            <path d="M0,180 Q100,160 200,100 T400,120 T600,60 T800,90 T1000,40 V200 H0 Z" fill="rgba(37, 99, 235, 0.08)"></path>
+          </svg>
+          <div class="chart-x-axis">
+            <span>Mar 01</span>
+            <span>Mar 08</span>
+            <span>Mar 15</span>
+            <span>Mar 22</span>
+            <span>Mar 29</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-side">
+        <h3 class="chart-title">{{ isAdminView ? 'Most Viewed Posts' : 'Likes Distribution' }}</h3>
+        <div class="distribution-list" *ngIf="topPosts.length > 0">
+          <div class="dist-item" *ngFor="let post of topPosts">
+            <div class="dist-info">
+              <span class="dist-name">{{ post.title }}</span>
+              <span class="dist-value">{{ isAdminView ? post.viewCount : post.likesCount }}</span>
+            </div>
+            <div class="progress-bg">
+              <div class="progress-bar" [style.width.%]="getPercentage((isAdminView ? post.viewCount : post.likesCount) || 0)"></div>
+            </div>
+          </div>
+        </div>
+        <div class="empty-note" *ngIf="topPosts.length === 0">No analytics data available yet.</div>
+      </div>
+    </div>
+
+    <div class="audit-section" *ngIf="posts.length > 0">
+      <div class="audit-header">
+        <h3 class="audit-title">Content Audit</h3>
+      </div>
+      <div class="table-wrapper">
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Post Title</th>
+              <th>Views</th>
+              <th class="text-right">Likes</th>
+              <th class="text-right">Comments</th>
+              <th class="text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of posts">
+              <td>
+                <div class="post-info">
+                  <span class="post-title">{{ item.title }}</span>
+                  <span class="post-date">Published {{ item.createdAt | date:'mediumDate' }}</span>
+                </div>
+              </td>
+              <td class="font-mono">{{ item.viewCount || 0 }}</td>
+              <td class="font-mono text-right">{{ item.likesCount || 0 }}</td>
+              <td class="font-mono text-right">-</td>
+              <td class="text-right">
+                <span class="status-badge">{{ item.status }}</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </ng-container>
+</main>

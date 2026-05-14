@@ -1,0 +1,78 @@
+<div class="auth-canvas">
+  <div class="auth-card" style="max-width: 680px;">
+    
+    <div class="auth-logo">
+      <span class="material-symbols-outlined logo-icon">history_edu</span>
+      <span class="logo-text">InkWell</span>
+    </div>
+
+    <div class="auth-header">
+      <h1 class="font-serif">{{ isUpgradeMode ? 'Elevate Your Voice' : 'Choose Your Path' }}</h1>
+      <p style="color: var(--on-surface-muted); margin-top: 0.5rem; font-size: 0.875rem;">
+        {{ isUpgradeMode 
+           ? 'Step into the world of publishing by upgrading to an Author account.' 
+           : 'Your journey starts here. Select how you want to experience InkWell.' }}
+      </p>
+    </div>
+
+    <div *ngIf="errorMessage" class="auth-feedback error" role="alert" style="margin-bottom: 2rem;">
+      {{ errorMessage }}
+    </div>
+
+    <div class="onboarding-sections">
+      <!-- Reader Option (Hidden in Upgrade Mode) -->
+      <div class="onboarding-option" *ngIf="!isUpgradeMode" (click)="continueAsReader()" [class.disabled]="isLoading">
+        <div class="option-icon reader-bg">
+          <span class="material-symbols-outlined">menu_book</span>
+        </div>
+        <div class="option-info">
+          <h3>Continue as Reader</h3>
+          <p>Read essays, follow your favorite authors, and save stories for later.</p>
+        </div>
+      </div>
+
+      <!-- Author Upgrade Section -->
+      <div class="onboarding-option author-section" [class.active-mode]="isUpgradeMode">
+        <div class="option-icon author-bg">
+          <span class="material-symbols-outlined">edit_square</span>
+        </div>
+        <div class="option-info">
+          <h3>{{ isUpgradeMode ? 'Ready to Publish?' : 'Become an Author' }}</h3>
+          <p>Share your stories, build your audience, and join our creative community.</p>
+          
+          <div class="premium-terms-box">
+            <div class="terms-header">Terms & Conditions</div>
+            <ul class="terms-list">
+              <li>You own the rights to your content.</li>
+              <li>Maintain a respectful and safe environment.</li>
+              <li>No spam or misleading advertisements.</li>
+              <li>Admins may review flagged content.</li>
+            </ul>
+          </div>
+
+          <div class="auth-field" style="margin-top: 1.5rem;">
+            <label class="custom-checkbox">
+              <input type="checkbox" [(ngModel)]="acceptedTerms" />
+              <span class="checkmark"></span>
+              <span class="checkbox-label">I accept the terms and conditions.</span>
+            </label>
+          </div>
+
+          <button
+            class="auth-submit-btn author-btn"
+            (click)="becomeAuthor()"
+            [disabled]="isLoading || !acceptedTerms"
+          >
+            <span *ngIf="!isLoading">{{ isUpgradeMode ? 'Confirm Upgrade' : 'Become an Author' }}</span>
+            <div *ngIf="isLoading" class="spinner-small"></div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-switch" *ngIf="!isUpgradeMode">
+      <a routerLink="/" style="color: var(--on-surface-muted); font-weight: 400;">Skip for now</a>
+    </div>
+    
+  </div>
+</div>

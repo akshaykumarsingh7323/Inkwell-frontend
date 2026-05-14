@@ -1,0 +1,116 @@
+<section class="comments-container" id="comments-section">
+  <div class="comments-header">
+    <h3>Responses ({{ comments.length }})</h3>
+  </div>
+
+  <div *ngIf="successMessage" class="status-msg success">
+    <span class="material-symbols-outlined">check_circle</span> {{ successMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="status-msg error">
+    <span class="material-symbols-outlined">error</span> {{ errorMessage }}
+  </div>
+
+  <!-- Comment Input -->
+  <div class="comment-input-box" *ngIf="currentUser; else loginToComment">
+    <div class="user-avatar-mini">
+      <img *ngIf="currentUser.avatarUrl" [src]="currentUser.avatarUrl" [alt]="currentUser.username">
+      <span *ngIf="!currentUser.avatarUrl">{{ currentUser.username.charAt(0) }}</span>
+    </div>
+    <div class="input-wrapper">
+      <textarea 
+        placeholder="What are your thoughts?" 
+        [(ngModel)]="newCommentContent"
+        [disabled]="isSubmitting"
+      ></textarea>
+      <div class="input-actions">
+        <button class="btn-primary-sm" [disabled]="!newCommentContent.trim() || isSubmitting" (click)="submitComment()">
+          {{ isSubmitting ? 'Posting...' : 'Respond' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #loginToComment>
+    <div class="login-prompt">
+      <p><a routerLink="/login">Sign in</a> to join the conversation.</p>
+    </div>
+  </ng-template>
+
+  <!-- Comments List -->
+  <div class="comments-list">
+    <div class="comment-card" *ngFor="let comment of rootComments">
+      <div class="comment-header">
+        <div class="comment-author">
+          <div class="avatar-sm">
+            <img *ngIf="getAuthor(comment.authorId)?.avatarUrl" [src]="getAuthor(comment.authorId)?.avatarUrl" alt="">
+            <span *ngIf="!getAuthor(comment.authorId)?.avatarUrl">{{ getAuthor(comment.authorId)?.username?.charAt(0) || 'U' }}</span>
+          </div>
+          <div class="author-info">
+            <span class="name" [routerLink]="['/author', comment.authorId]" style="cursor: pointer;">{{ getAuthor(comment.authorId)?.fullName || getAuthor(comment.authorId)?.username || 'User' }}</span>
+            <span class="time">{{ comment.createdAt | date:'mediumDate' }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="comment-content">{{ comment.content }}</div>
+      
+      <div class="comment-footer">
+        <button class="action-link" (click)="toggleLike(comment)" [class.active]="likedCommentIds.has(comment.commentId)">
+          <span class="material-symbols-outlined">{{ likedCommentIds.has(comment.commentId) ? 'favorite' : 'favorite_border' }}</span>
+          {{ comment.likesCount || 0 }}
+        </button>
+        <button class="action-link" (click)="activeReplyId = comment.commentId">Reply</button>
+        <button class="action-link delete" *ngIf="currentUser?.userId === comment.authorId.toString() || currentUser?.role === 'ADMIN'" (click)="confirmDelete(comment.commentId)">Delete</button>
+      </div>
+
+      <!-- Reply Input -->
+      <div class="reply-input-box" *ngIf="activeReplyId === comment.commentId">
+        <textarea placeholder="Reply to this comment..." [(ngModel)]="replyDrafts[comment.commentId]"></textarea>
+        <div class="reply-actions">
+          <button class="btn-text" (click)="activeReplyId = null">Cancel</button>
+          <button class="btn-primary-sm" (click)="submitComment(comment.commentId)">Reply</button>
+        </div>
+      </div>
+
+      <!-- Nested Replies -->
+      <div class="replies-list" *ngIf="getReplies(comment.commentId).length > 0">
+        <div class="comment-card reply" *ngFor="let reply of getReplies(comment.commentId)">
+          <div class="comment-header">
+            <div class="comment-author">
+              <div class="author-info" style="flex-direction: row; align-items: center; gap: 8px;">
+                <a class="name" [routerLink]="['/author', reply.authorId]" style="cursor: pointer; text-decoration: none; color: var(--on-background); font-weight: 700;">
+                  {{ getAuthor(reply.authorId)?.fullName || getAuthor(reply.authorId)?.username || 'User' }}
+                </a>
+                <span class="dot" style="font-size: 10px; color: var(--border-strong);">•</span>
+                <span class="time">{{ reply.createdAt | date:'shortDate' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="comment-content">{{ reply.content }}</div>
+          <div class="comment-footer">
+            <button class="action-link delete" *ngIf="currentUser?.userId === reply.authorId.toString() || currentUser?.role === 'ADMIN'" (click)="confirmDelete(reply.commentId)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="commentToDeleteId !== null" (click)="cancelDelete()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="confirm-icon">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h3>Delete Comment</h3>
+      <p>Are you sure you want to delete this comment? This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" [disabled]="isSubmitting" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-danger" [disabled]="isSubmitting" (click)="executeDelete()">
+          <span *ngIf="isSubmitting">Deleting...</span>
+          <span *ngIf="!isSubmitting">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>

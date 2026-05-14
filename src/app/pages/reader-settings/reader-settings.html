@@ -1,0 +1,196 @@
+<app-sidebar></app-sidebar>
+
+<main class="main-content">
+  <div class="content-container">
+    <header class="page-header">
+      <h1 class="page-title">Account Settings</h1>
+      <p class="page-description">Keep your public profile current and secure your account credentials.</p>
+    </header>
+
+    <div class="settings-grid">
+      <div class="settings-main">
+        <section id="edit-profile" class="settings-section">
+          <div class="section-header">
+            <span class="material-symbols-outlined icon-secondary">person</span>
+            <h2 class="section-title">Edit Profile</h2>
+          </div>
+
+          <form class="profile-editor" [formGroup]="profileForm" (ngSubmit)="saveProfile()">
+            <div class="avatar-column">
+              <div class="avatar-wrapper" (click)="triggerAvatarUpload()" style="cursor: pointer;">
+                <img
+                  alt="Profile Avatar"
+                  class="avatar-image"
+                  [src]="profileForm.value.avatarUrl || user?.avatarUrl || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=320&q=80'"
+                />
+                <div class="avatar-overlay" *ngIf="isUploadingAvatar">
+                  <span class="material-symbols-outlined spinning">sync</span>
+                </div>
+              </div>
+              <button type="button" class="btn-ghost-sm" (click)="triggerAvatarUpload()" style="margin-top: 1rem;">Change Photo</button>
+              <input #avatarInput type="file" (change)="onAvatarSelected($event)" accept="image/*" style="display: none;">
+            </div>
+
+            <div class="form-column">
+              <div *ngIf="profileMessage" class="status success">{{ profileMessage }}</div>
+              <div *ngIf="profileError" class="status error">{{ profileError }}</div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="input-label" for="full-name">Full Name</label>
+                  <input id="full-name" class="text-input" type="text" formControlName="fullName" />
+                  <div class="field-error" *ngIf="profileForm.get('fullName')?.touched && profileForm.get('fullName')?.invalid">
+                    Full name is required.
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="input-label">Username</label>
+                  <div class="static-value">@{{ user?.username }}</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label">Email Address</label>
+                <div class="static-value">{{ user?.email }}</div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="avatar-url">Avatar URL (Optional)</label>
+                <input id="avatar-url" class="text-input" type="url" formControlName="avatarUrl" placeholder="https://..." />
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="bio">Bio</label>
+                <textarea id="bio" class="textarea-input" rows="4" formControlName="bio" placeholder="Tell us about yourself..."></textarea>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn-primary" type="submit" [disabled]="isSavingProfile || isUploadingAvatar">
+                  {{ isSavingProfile ? 'Saving...' : 'Save Profile Changes' }}
+                </button>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section id="security" class="settings-section border-top">
+          <div class="section-header">
+            <span class="material-symbols-outlined icon-secondary">lock</span>
+            <h2 class="section-title">Security Credentials</h2>
+          </div>
+
+          <form class="password-form" [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+            <div *ngIf="passwordMessage" class="status success">{{ passwordMessage }}</div>
+            <div *ngIf="passwordError" class="status error">{{ passwordError }}</div>
+
+            <div class="form-group max-w-md">
+              <label class="input-label" for="current-password">Current Password</label>
+              <input id="current-password" class="text-input" type="password" formControlName="oldPassword" />
+            </div>
+
+            <div class="form-row max-w-md">
+              <div class="form-group">
+                <label class="input-label" for="new-password">New Password</label>
+                <input id="new-password" class="text-input" type="password" formControlName="newPassword" />
+                <div class="field-error" *ngIf="passwordForm.get('newPassword')?.touched && passwordForm.get('newPassword')?.errors?.['minlength']">
+                  Password must be at least 8 characters.
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label" for="confirm-password">Confirm Password</label>
+                <input id="confirm-password" class="text-input" type="password" formControlName="confirmPassword" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button class="btn-secondary" type="submit" [disabled]="isSavingPassword">
+                {{ isSavingPassword ? 'Updating...' : 'Update Password' }}
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section id="newsletter" class="settings-section border-top">
+          <div class="section-header">
+            <span class="material-symbols-outlined icon-secondary">mail</span>
+            <h2 class="section-title">Newsletter Preferences</h2>
+          </div>
+
+          <div class="newsletter-settings" *ngIf="isSubscribed; else notSubscribed">
+            <div class="status success" *ngIf="newsletterMessage">{{ newsletterMessage }}</div>
+            
+            <p class="section-desc">Manage your subscription and interest tags for tailored content.</p>
+            
+            <div class="preference-group">
+              <label class="input-label">Interests (Comma separated)</label>
+              <input type="text" class="text-input" [(ngModel)]="preferences" placeholder="e.g. tech, lifestyle, business" />
+              <p class="hint">These tags help us send you content you actually care about.</p>
+            </div>
+
+            <div class="form-actions" style="margin-top: 2rem; display: flex; gap: 12px;">
+              <button class="btn-primary" (click)="saveNewsletterPreferences()" [disabled]="isSavingNewsletter">
+                {{ isSavingNewsletter ? 'Saving...' : 'Save Preferences' }}
+              </button>
+              <button class="btn-ghost" (click)="unsubscribe()" [disabled]="isSavingNewsletter">
+                Unsubscribe
+              </button>
+            </div>
+          </div>
+
+          <ng-template #notSubscribed>
+            <div class="promo-box">
+              <p>You are not currently subscribed to the InkWell newsletter.</p>
+              <button class="btn-primary" (click)="subscribe()">Subscribe Now</button>
+            </div>
+          </ng-template>
+        </section>
+      </div>
+
+      <aside class="settings-sidebar">
+        <div class="sticky-sidebar">
+          <div class="sidebar-header">
+            <span class="material-symbols-outlined icon-secondary">verified_user</span>
+            <h2 class="sidebar-title">Account Snapshot</h2>
+          </div>
+
+          <div class="toggle-list">
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <p class="toggle-name">Role</p>
+                <p class="toggle-desc">Current access level</p>
+              </div>
+              <span class="badge">{{ user?.role || 'READER' }}</span>
+            </div>
+
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <p class="toggle-name">Username</p>
+                <p class="toggle-desc">Public handle</p>
+              </div>
+              <span class="badge subtle">@{{ user?.username || 'member' }}</span>
+            </div>
+          </div>
+
+          <div class="subscription-card">
+            <h3 class="card-title">Profile Tips</h3>
+            <div class="card-content">
+              <p class="expiry-date">Your email and username come from the authenticated account and cannot be changed here.</p>
+            </div>
+          </div>
+
+          <div class="subscription-card" *ngIf="user?.role === 'READER'">
+            <h3 class="card-title">Author Access</h3>
+            <div class="card-content">
+              <p class="expiry-date">Ready to publish on InkWell? Review the publishing terms and upgrade your account.</p>
+              <a routerLink="/select-role" class="btn-primary" style="display: inline-flex; margin-top: 1rem; text-decoration: none;">
+                Apply as Author
+              </a>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>

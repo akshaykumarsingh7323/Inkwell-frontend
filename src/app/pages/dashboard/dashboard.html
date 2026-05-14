@@ -1,0 +1,96 @@
+<div class="dashboard-layout">
+  <app-sidebar></app-sidebar>
+  
+  <div class="dashboard-main">
+    <header class="dashboard-header">
+      <div class="user-profile-summary">
+        <div class="user-avatar-large">{{ getInitial() }}</div>
+        <div class="user-meta">
+          <h1>Welcome, {{ user?.fullName || user?.username }}</h1>
+          <p class="on-surface-muted">{{ user?.email }}</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-primary" (click)="createNewPost()">
+          <span class="material-symbols-outlined">add</span>
+          Write Post
+        </button>
+      </div>
+    </header>
+
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+    </div>
+
+    <ng-container *ngIf="!isLoading">
+      <!-- Stats Overview -->
+      <div class="stats-overview">
+        <div class="stat-card">
+          <span class="stat-label">Total Views</span>
+          <span class="stat-value">{{ totalViews }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total Likes</span>
+          <span class="stat-value">{{ totalLikes }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Posts</span>
+          <span class="stat-value">{{ recentPosts.length }}</span>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <!-- Recent Posts Section -->
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>Recent Content</h2>
+            <a routerLink="/my-posts" class="view-all">Manage Posts</a>
+          </div>
+          <div class="recent-posts-list">
+            <div class="recent-post-item" *ngFor="let post of recentPosts">
+              <a [routerLink]="['/edit-post', post.postId]" class="post-link">
+                <div>
+                  <p class="recent-post-name">{{ post.title }}</p>
+                  <span *ngIf="post.status === 'DRAFT'" class="status-badge draft">Draft</span>
+                </div>
+                <span class="recent-post-date">{{ post.createdAt | date:'d MMM' }}</span>
+              </a>
+            </div>
+            <div *ngIf="recentPosts.length === 0" class="empty-state">
+              <p>No entries yet. Start writing today.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- My Purchases Section -->
+        <section class="dashboard-section">
+          <div class="section-header">
+            <h2>My Purchases</h2>
+            <a routerLink="/my-purchases" class="view-all">Full History</a>
+          </div>
+          <div class="purchases-table-container">
+            <table class="purchases-table">
+              <thead>
+                <tr>
+                  <th>Post</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let purchase of purchases.slice(0, 5)">
+                  <td>Post #{{ purchase.postId }}</td>
+                  <td>₹{{ purchase.amount }}</td>
+                  <td><span class="status-badge" [class]="purchase.status.toLowerCase()">{{ purchase.status }}</span></td>
+                </tr>
+                <tr *ngIf="purchases.length === 0">
+                  <td colspan="3" class="empty-state">No purchases found.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </div>
+    </ng-container>
+  </div>
+</div>

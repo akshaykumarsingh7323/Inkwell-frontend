@@ -1,0 +1,62 @@
+<main class="management-content">
+  <div class="page-header">
+    <div class="page-header-main">
+      <div class="page-eyebrow">Studio Assets</div>
+      <h1 class="page-title">Media Library</h1>
+      <p class="page-subtitle">{{ isAdminView ? 'Review and manage the site-wide media library.' : 'Upload and manage your article assets.' }}</p>
+    </div>
+    <div class="page-header-actions">
+      <input type="file" #fileInput hidden (change)="onFileSelected($event)">
+      <button class="btn-upload" type="button" (click)="fileInput.click()" [disabled]="isUploading">
+        <span class="material-symbols-outlined">upload</span>
+        {{ isUploading ? 'Uploading...' : 'Upload Media' }}
+      </button>
+    </div>
+  </div>
+
+
+  <p class="status-message status-message--error" *ngIf="uploadError">{{ uploadError }}</p>
+
+  <div class="empty-state" *ngIf="isLoading">Loading media...</div>
+
+  <div class="media-grid" *ngIf="!isLoading && mediaItems.length > 0">
+    <article class="media-card" *ngFor="let item of mediaItems">
+      <div class="media-preview">
+        <img [src]="item.url" [alt]="item.altText || item.originalName" class="preview-img">
+      </div>
+      <div class="media-info">
+        <h3 class="media-name">{{ item.originalName || item.filename }}</h3>
+        <div class="media-meta">
+          <span>{{ formatKb(item.sizeKb) }}</span>
+          <span class="dot"></span>
+          <span>{{ item.uploadedAt | date:'mediumDate' }}</span>
+          <ng-container *ngIf="isAdminView">
+            <span class="dot"></span>
+            <span>Uploader #{{ item.uploaderId }}</span>
+          </ng-container>
+        </div>
+        <label class="media-alt">
+          <span>Alt text</span>
+          <input
+            type="text"
+            [value]="item.altText || ''"
+            (change)="updateAltText(item, $event)"
+            placeholder="Describe this media for accessibility"
+          />
+        </label>
+        <div class="media-actions">
+          <button class="btn-text" type="button" (click)="copyUrl(item.url)">Copy URL</button>
+          <button class="icon-btn delete" type="button" title="Delete" (click)="deleteMedia(item.mediaId)">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+      </div>
+    </article>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && mediaItems.length === 0">No media uploaded yet.</div>
+
+  <div class="pagination" *ngIf="!isLoading && mediaItems.length > 0">
+    <span class="pagination-info">Total assets: {{ mediaItems.length }}</span>
+  </div>
+</main>

@@ -1,0 +1,141 @@
+        <!-- Hero Section -->
+        <div class="hero">
+          <div class="hero-top">
+            <div>
+              <div class="hero-title">Welcome, {{ (currentUser$ | async) ? getGreetingName((currentUser$ | async)) : 'Guest' }} 👋</div>
+              <div class="hero-sub">{{ filteredPosts().length }} posts available for today</div>
+            </div>
+            <div class="search-wrap">
+              <span class="search-ico">🔍</span>
+              <input class="search-inp" type="text" placeholder="Search posts..." (input)="doSearch($event)"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="filter-row">
+          <span class="tag" [class.sel]="activeTag() === 'all'" (click)="filterTag('all')">All</span>
+          <span class="tag" [class.sel]="activeTag() === 'Technology'" (click)="filterTag('Technology')">Technology</span>
+          <span class="tag" [class.sel]="activeTag() === 'Design'" (click)="filterTag('Design')">Design</span>
+          <span class="tag" [class.sel]="activeTag() === 'Tips'" (click)="filterTag('Tips')">Tips</span>
+          <span class="tag" [class.sel]="activeTag() === 'News'" (click)="filterTag('News')">News</span>
+          
+          <select class="sort-sel" (change)="doSort($any($event.target).value)">
+            <option value="new">Newest first</option>
+            <option value="old">Oldest first</option>
+            <option value="alpha">A-Z</option>
+          </select>
+        </div>
+
+        <!-- Skeleton Loading State -->
+        <div class="posts-grid" *ngIf="isLoading()">
+          <div class="post-card" *ngFor="let i of [1,2,3,4]">
+            <div class="pc-top">
+              <div class="skeleton" style="width: 80px; height: 18px; border-radius: 20px;"></div>
+              <div class="skeleton" style="width: 60px; height: 14px;"></div>
+            </div>
+            <div class="skeleton" style="width: 100%; height: 20px; margin-bottom: 8px;"></div>
+            <div class="skeleton" style="width: 90%; height: 14px; margin-bottom: 6px;"></div>
+            <div class="skeleton" style="width: 80%; height: 14px; margin-bottom: 12px;"></div>
+            <div class="pc-foot">
+              <div class="pc-author">
+                <div class="skeleton" style="width: 20px; height: 20px; border-radius: 50%;"></div>
+                <div class="skeleton" style="width: 60px; height: 12px;"></div>
+              </div>
+              <div class="pc-stats">
+                <div class="skeleton" style="width: 30px; height: 12px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content" style="margin-top: 2rem;">
+          
+          <!-- Posts Grid -->
+          <div class="posts-grid" *ngIf="!isLoading()">
+            <div class="post-card" 
+                 *ngFor="let post of paginatedPosts()" 
+                 [class]="getCategoryName(post.categoryId)"
+                 (click)="navigateToPost(post, $event)">
+          
+          <!-- Added Image Section -->
+          <div class="pc-image">
+            <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked && !isAdmin(currentUser$ | async)">
+            </div>
+            <span class="pc-cat-badge" [class]="getCategoryName(post.categoryId)">{{ getCategoryName(post.categoryId) }}</span>
+            
+            <div class="pc-img-status" *ngIf="post.isPremium">
+              <button class="pc-buy-overlay" *ngIf="!post.accessUnlocked && !isAdmin(currentUser$ | async)">
+                <span class="buy-label">Buy Now</span>
+                <span class="buy-price">₹{{ post.price }}</span>
+              </button>
+              <div class="pc-purchased-overlay" *ngIf="post.accessUnlocked">
+                <span class="material-symbols-outlined">check_circle</span> Purchased
+              </div>
+              <div class="pc-purchased-overlay" style="background: rgba(0,0,0,0.7);" *ngIf="!post.accessUnlocked && isAdmin(currentUser$ | async)">
+                <span class="material-symbols-outlined">workspace_premium</span> Premium
+              </div>
+            </div>
+          </div>
+
+          <div class="pc-body">
+            <div class="pc-title">{{ post.title }}</div>
+
+            <div class="pc-foot">
+              <div class="pc-author">
+                <span class="au-name">By {{ post.authorName || 'InkWell Writer' }}</span>
+              </div>
+              <div class="pc-stats">
+                <span class="pc-stat">👁️ {{ post.viewCount || 0 }}</span>
+                <span class="pc-stat">❤️ {{ post.likesCount || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading() && paginatedPosts().length === 0" class="empty">
+        <div class="empty-ico">📭</div>
+        No posts found. Try a different search.
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="!isLoading() && totalPages() > 1" style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; align-items: center;">
+        <button (click)="prevPage()" [disabled]="currentPage() === 1" style="padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer;">Previous</button>
+        <span>Page {{ currentPage() }} of {{ totalPages() }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage() === totalPages()" style="padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer;">Next</button>
+      </div>
+    </div> <!-- End Main Layout -->
+
+        <!-- Premium Purchase Modal -->
+        <div class="modal-backdrop" *ngIf="showPurchaseModal()" (click)="cancelPurchase()">
+          <div class="purchase-modal" (click)="$event.stopPropagation()">
+            <div class="pm-icon">
+              <span class="material-symbols-outlined">lock</span>
+            </div>
+            <div class="pm-body">
+              <h2>Unlock Premium Post</h2>
+              <p>You are about to unlock <strong>{{ selectedPostForPurchase()?.title }}</strong>. This will give you lifetime access to the full content.</p>
+              
+              <div class="pm-price-tag">
+                <span class="pm-currency">₹</span>
+                <span class="pm-amount">{{ selectedPostForPurchase()?.price }}</span>
+              </div>
+            </div>
+            <div class="pm-actions">
+              <button class="pm-cancel" (click)="cancelPurchase()" [disabled]="isProcessing()">Maybe Later</button>
+              <button class="pm-confirm" (click)="confirmPurchase()" [disabled]="isProcessing()">
+                <ng-container *ngIf="!isProcessing()">
+                  Unlock Now
+                  <span class="material-symbols-outlined">arrow_forward</span>
+                </ng-container>
+                <ng-container *ngIf="isProcessing()">
+                  Processing...
+                </ng-container>
+              </button>
+            </div>
+          </div>
+        </div>

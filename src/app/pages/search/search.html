@@ -1,0 +1,270 @@
+<div class="content-container search-page">
+  <header class="search-page__header">
+    <div class="search-page__bar-container">
+      <div class="search-page__bar">
+        <input
+          type="text"
+          [value]="query"
+          (input)="onSearchInput($event)"
+          (keyup.enter)="performSearch()"
+          placeholder="Search for topics, authors, or stories..."
+          aria-label="Search the archive"
+        >
+        <button type="button" class="search-btn-icon" (click)="performSearch()">
+          <span class="material-symbols-outlined">search</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 📊 SORTING OPTIONS BAR -->
+    <div class="search-page__sort">
+      <button 
+        class="sort-tab" 
+        [class.active]="selectedSort === 'latest'" 
+        (click)="setSort('latest')">
+        <span class="material-symbols-outlined">schedule</span>
+        Latest
+      </button>
+      <button 
+        class="sort-tab" 
+        [class.active]="selectedSort === 'views'" 
+        (click)="setSort('views')">
+        <span class="material-symbols-outlined">visibility</span>
+        Most Viewed
+      </button>
+      <button 
+        class="sort-tab" 
+        [class.active]="selectedSort === 'likes'" 
+        (click)="setSort('likes')">
+        <span class="material-symbols-outlined">favorite</span>
+        Most Liked
+      </button>
+      <button 
+        class="sort-tab" 
+        [class.active]="selectedSort === 'trending'" 
+        (click)="setSort('trending')">
+        <span class="material-symbols-outlined">trending_up</span>
+        Trending
+      </button>
+    </div>
+  </header>
+
+  <div *ngIf="isLoading" class="empty-state">
+    <div class="spinner"></div>
+    <p>Discovering great stories...</p>
+  </div>
+
+  <div *ngIf="!isLoading && errorMessage" class="empty-state">
+    <h2>Search is unavailable right now.</h2>
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <section *ngIf="!isLoading && !errorMessage && (!isDiscoveryMode || query) && posts.length > 0" class="search-results">
+    <div class="search-results__header">
+      <ng-container *ngIf="query">
+        <strong>{{ posts.length }} results</strong>
+        <span>for "{{ query }}"</span>
+      </ng-container>
+      <ng-container *ngIf="!query">
+        <strong>{{ getSortLabel() }} Stories</strong>
+        <span *ngIf="selectedCategory !== 'All'"> in {{ selectedCategory }}</span>
+      </ng-container>
+    </div>
+
+    <div class="search-results__list">
+      <a class="article-card" *ngFor="let post of posts" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
+        <div class="article-card-copy">
+          <div class="article-card-kicker">
+            <span *ngIf="post.isPremium" class="premium-badge" [class.unlocked]="post.accessUnlocked">
+              <span class="material-symbols-outlined">{{ post.accessUnlocked ? 'check_circle' : 'lock' }}</span>
+              {{ post.accessUnlocked ? 'PURCHASED' : 'PREMIUM' }}
+            </span>
+            <span>{{ getCategoryName(post.categoryId) }}</span>
+            <span class="dot"></span>
+            <span>{{ post.publishedAt | date:'mediumDate' }}</span>
+          </div>
+          <h3 class="article-card-title">{{ post.title }}</h3>
+          <p class="article-card-excerpt">{{ post.excerpt }}</p>
+          <div class="article-card-meta">
+            <div class="meta-left">
+              <span>{{ post.readTimeMin || 1 }} min read</span>
+            </div>
+            <div class="meta-right stats-row">
+              <span title="Views">👁️ {{ post.viewCount || 0 }}</span>
+              <span title="Likes">❤️ {{ post.likesCount || 0 }}</span>
+              <span title="Comments">💬 {{ post.commentsCount || 0 }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="article-card-media">
+          <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" [alt]="post.title">
+          <div *ngIf="!post.featuredImageUrl" class="search-results__placeholder"></div>
+          
+          <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
+            <div class="pio-price" style="font-size: 2.2rem;">₹{{ post.price }}</div>
+            <div class="pio-text" style="font-size: 0.7rem;">ONLY FOR</div>
+          </div>
+          
+          <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
+            <span class="material-symbols-outlined" style="font-size: 2rem; color: #fff;">check_circle</span>
+            <div class="pio-text" style="font-size: 0.7rem;">PURCHASED</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <div *ngIf="!isLoading && !errorMessage && hasSearched && posts.length === 0" class="empty-state">
+    <h2>No post found for "{{ query }}".</h2>
+  </div>
+
+  <!-- ========== DISCOVERY EXPERIENCE (Enhanced) ========== -->
+  <div *ngIf="isDiscoveryMode && !isLoading" class="discovery-content">
+    
+    <!-- 🏷️ CATEGORY FILTER -->
+    <section class="discovery-section">
+      <div class="category-chips-scroll">
+        <button 
+          class="chip" 
+          [class.active]="selectedCategory === 'All'"
+          (click)="selectCategory('All')">All Topics</button>
+        <button 
+          *ngFor="let cat of categories" 
+          class="chip"
+          [class.active]="selectedCategory === cat.name"
+          (click)="selectCategory(cat.name)">
+          {{ cat.name }}
+        </button>
+      </div>
+    </section>
+
+    <!-- 🔥 TRENDING POSTS -->
+    <section class="discovery-section">
+      <div class="section-heading-row">
+        <h2 class="section-title">Trending Now</h2>
+        <span class="trending-icon">🔥</span>
+      </div>
+      <div class="discovery-grid">
+        <a *ngFor="let post of trendingPosts" class="discovery-card" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
+          <div class="card-image">
+            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" alt="">
+            <div *ngIf="!post.featuredImageUrl" class="image-placeholder"></div>
+            <div class="card-badge">TRENDING</div>
+            
+            <!-- Premium Overlay for Locked Content -->
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
+              <div class="pio-price">₹{{ post.price }}</div>
+              <div class="pio-text">ONLY FOR</div>
+            </div>
+            
+            <!-- Premium Overlay for Purchased Content -->
+            <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
+              <span class="material-symbols-outlined" style="font-size: 3rem; color: #fff;">check_circle</span>
+              <div class="pio-text">PURCHASED</div>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">{{ post.title }}</h3>
+            <div class="card-meta">
+              <span class="author">By {{ post.authorName || 'InkWell Writer' }}</span>
+              <div class="stats">
+                <span>👁️ {{ post.viewCount || 0 }}</span>
+                <span>❤️ {{ post.likesCount || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 🧠 RECOMMENDED POSTS -->
+    <section class="discovery-section">
+      <div class="section-heading-row">
+        <h2 class="section-title">Recommended For You</h2>
+      </div>
+      <div class="discovery-grid">
+        <a *ngFor="let post of recommendedPosts" class="discovery-card" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
+          <div class="card-image">
+            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" alt="">
+            <div *ngIf="!post.featuredImageUrl" class="image-placeholder"></div>
+            
+            <!-- Premium Overlay for Locked Content -->
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
+              <div class="pio-price">₹{{ post.price }}</div>
+              <div class="pio-text">ONLY FOR</div>
+            </div>
+            
+            <!-- Premium Overlay for Purchased Content -->
+            <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
+              <span class="material-symbols-outlined" style="font-size: 3rem; color: #fff;">check_circle</span>
+              <div class="pio-text">PURCHASED</div>
+            </div>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">{{ post.title }}</h3>
+            <p class="card-excerpt">{{ post.excerpt | slice:0:80 }}...</p>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- 👤 TOP AUTHORS -->
+    <section class="discovery-section">
+      <div class="section-heading-row">
+        <h2 class="section-title">AUTHORS LIST V3</h2>
+      </div>
+      <div class="author-scroll">
+        <div *ngFor="let author of topAuthors" class="author-card">
+          <a [routerLink]="['/author', author.id]" class="author-card__link">
+            <img [src]="author.avatar" class="author-avatar" alt="">
+            <h4 class="author-name">{{ author.name }}</h4>
+            <p class="author-bio">{{ author.bio }}</p>
+          </a>
+          <button class="follow-btn" 
+                  [class.following]="author.isFollowing" 
+                  [disabled]="author.isFollowLoading"
+                  (click)="toggleFollow(author)">
+            {{ author.isFollowLoading ? 'Following...' : (author.isFollowing ? 'Following' : 'Follow') }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🆕 LATEST POSTS -->
+    <section class="discovery-section">
+      <div class="section-heading-row">
+        <h2 class="section-title">Latest Posts</h2>
+      </div>
+      <div class="discovery-grid latest-grid">
+        <a *ngFor="let post of latestPosts" class="discovery-card horizontal" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
+          <div class="card-image-sm">
+            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" alt="">
+            <div *ngIf="!post.featuredImageUrl" class="image-placeholder"></div>
+            
+            <!-- Premium Overlay for Locked Content -->
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
+              <div class="pio-price" style="font-size: 2.2rem;">₹{{ post.price }}</div>
+              <div class="pio-text" style="font-size: 0.7rem;">ONLY FOR</div>
+            </div>
+            
+            <!-- Premium Overlay for Purchased Content -->
+            <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
+              <span class="material-symbols-outlined" style="font-size: 2rem; color: #fff;">check_circle</span>
+              <div class="pio-text" style="font-size: 0.7rem;">PURCHASED</div>
+            </div>
+          </div>
+          <div class="card-content">
+            <span class="card-category">{{ getCategoryName(post.categoryId) }}</span>
+            <h3 class="card-title">{{ post.title }}</h3>
+            <p class="card-excerpt">{{ post.excerpt | slice:0:100 }}...</p>
+          </div>
+        </a>
+      </div>
+      <div class="load-more-row">
+        <button class="btn-load-more">Load More Stories</button>
+      </div>
+    </section>
+
+  </div>
+</div>

@@ -1,0 +1,66 @@
+<div class="notifications-page-container">
+  <!-- Unified Header for Notifications -->
+  <div class="page-header-row">
+    <div>
+      <h1 class="page-title">Notifications</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-clear" (click)="clearRead()" *ngIf="notifications.length > 0">Clear Read</button>
+    </div>
+  </div>
+
+  <div class="notif-panel">
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Synchronizing notifications...</p>
+    </div>
+
+    <div *ngIf="!isLoading && errorMessage" class="empty-state">
+      <h3>Unable to load notifications</h3>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage && notifications.length === 0" class="simple-empty-state">
+      <h3 class="no-notif-text">No Notification</h3>
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage && notifications.length > 0" class="notifications-list">
+      <div *ngFor="let n of notifications" 
+           class="notification-card" 
+           [class.unread]="!n.isRead"
+           [routerLink]="n.relatedSlug ? ['/post', n.relatedSlug] : null"
+           [style.cursor]="n.relatedSlug ? 'pointer' : 'default'">
+        
+        <div class="notif-icon-box" [class]="n.type.toLowerCase()">
+          <span class="material-symbols-outlined">{{ getIcon(n.type, n.title) }}</span>
+        </div>
+
+        <div class="notif-content">
+          <div class="notif-header">
+            <h4 class="notif-title">{{ n.title }}</h4>
+            <span class="notif-time">{{ formatSmartDate(n.createdAt) }}</span>
+          </div>
+          <p class="notif-message">{{ n.message }}</p>
+          
+          <div class="notif-actions">
+            <!-- Approval Action for Comments -->
+            <button class="btn-action approve" 
+                    (click)="approveComment(n); $event.stopPropagation()" 
+                    *ngIf="n.type === 'NEW_COMMENT' && !n.isRead">
+              Approve Comment
+            </button>
+            <span class="status-approved" *ngIf="n.type === 'NEW_COMMENT' && n.isRead">
+              <span class="material-symbols-outlined">check_circle</span> Approved
+            </span>
+
+            <!-- Delete Action -->
+            <button class="btn-action delete" 
+                    (click)="deleteNotification(n.notificationId); $event.stopPropagation()">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

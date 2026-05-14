@@ -1,0 +1,76 @@
+<main class="post-management-content">
+  <div class="page-header">
+    <div class="page-eyebrow">Content Throughput</div>
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <h1 class="page-title">Platform Post Management</h1>
+      <div class="filter-badge" *ngIf="authorFilterId">
+        <span>Author ID: {{ authorFilterId }}</span>
+        <button class="clear-filter" (click)="clearFilter()">×</button>
+      </div>
+    </div>
+  </div>
+
+
+
+      <div *ngIf="errorMessage" class="error-banner" style="margin-bottom: 24px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; margin-right: 12px;"><circle cx="8" cy="8" r="7"/><path d="M8 5v4M8 11h.01"/></svg>
+        {{ errorMessage }}
+      </div>
+
+      <div *ngIf="isLoading" class="spinner-overlay">
+        <div class="spinner"></div>
+        <p style="color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">FETCHING PLATFORM CONTENT...</p>
+      </div>
+
+      <div class="table-panel" *ngIf="!isLoading">
+        <table>
+          <thead>
+            <tr>
+              <th>Post Details</th>
+              <th>Status</th>
+              <th>Performance</th>
+              <th>Publication Date</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let post of posts">
+              <td>
+                <div class="post-cell">
+                  <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop'" class="post-thumb" alt="thumb">
+                  <div>
+                    <span class="post-title">{{ post.title }}</span>
+                    <span class="post-author">By Author ID: {{ post.authorId }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="status-tag" [ngClass]="post.status">{{ post.status }}</span>
+              </td>
+              <td>
+                <div class="metrics-row">
+                  <div class="metric-item">👁 {{ post.viewCount || 0 }}</div>
+                  <div class="metric-item">❤ {{ post.likesCount || 0 }}</div>
+                </div>
+              </td>
+              <td class="date-col">
+                {{ post.publishedAt | date:'MMM d, yyyy' }}
+              </td>
+              <td class="actions-col">
+                <div class="action-buttons-wrapper">
+                  <button class="action-btn" (click)="unpublishPost(post.postId)" *ngIf="post.status === 'PUBLISHED'">Unpublish</button>
+                  <button class="action-btn delete" (click)="requestDelete(post.postId)">Delete</button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="posts.length === 0">
+              <td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                No posts found on the platform.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+</main>
+
+

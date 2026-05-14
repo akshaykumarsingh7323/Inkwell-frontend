@@ -1,0 +1,141 @@
+.admin-revenue-content {
+  padding: 32px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.admin-header h1 {
+  font-size: 28px;
+  color: var(--primary);
+  margin-bottom: 4px;
+}
+
+.revenue-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+
+.stat-card .label {
+  font-size: 14px;
+  color: var(--on-surface-muted);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.stat-card .value {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.trend {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trend.up {
+  color: #22543d;
+}
+
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 32px;
+}
+
+.admin-section {
+  background: white;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  padding: 24px;
+}
+
+.section-header {
+  margin-bottom: 24px;
+}
+
+.author-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.author-row {
+  display: flex;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.author-row:last-child {
+  border-bottom: none;
+}
+
+.rank {
+  font-weight: 800;
+  color: var(--primary);
+  width: 40px;
+}
+
+.author-id {
+  flex: 1;
+  font-size: 14px;
+  color: var(--on-surface-muted);
+}
+
+.earnings {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.transaction-table-container {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table th {
+  text-align: left;
+  padding: 12px;
+  background: rgba(0,0,0,0.02);
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--on-surface-muted);
+}
+
+.admin-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 14px;
+}
+
+.badge {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.badge.success { background: #c6f6d5; color: #22543d; }
+.badge.failed { background: #fed7d7; color: #822727; }
+.badge.pending { background: #feebc8; color: #744210; }

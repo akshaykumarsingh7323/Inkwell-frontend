@@ -1,0 +1,94 @@
+<div class="page-header">
+  <div class="page-eyebrow">System Governance</div>
+  <h1 class="page-title">Platform Audit Logs</h1>
+  <p class="page-subtitle">Historical trail of all administrative and system-level interactions.</p>
+</div>
+
+<!-- Filter Bar -->
+<div class="section-card filter-card">
+  <div class="filter-grid">
+    <div class="filter-field">
+      <label>Actor ID</label>
+      <input type="number" [(ngModel)]="actorIdInput" placeholder="e.g. 42" />
+    </div>
+    <div class="filter-field">
+      <label>Action</label>
+      <input type="text" [(ngModel)]="actionInput" placeholder="e.g. DELETE_COMMENT" />
+    </div>
+    <div class="filter-field">
+      <label>Entity Type</label>
+      <input type="text" [(ngModel)]="entityTypeInput" placeholder="e.g. POST" />
+    </div>
+    <div class="filter-field">
+      <label>From Date</label>
+      <input type="datetime-local" [(ngModel)]="fromInput" />
+    </div>
+    <div class="filter-field">
+      <label>To Date</label>
+      <input type="datetime-local" [(ngModel)]="toInput" />
+    </div>
+  </div>
+  <div class="filter-actions">
+    <button class="btn-primary" (click)="applyFilters()">
+      Search Logs
+    </button>
+    <button class="btn-outline" (click)="clearFilters()">
+      Reset
+    </button>
+  </div>
+</div>
+
+<!-- Error -->
+<div *ngIf="errorMessage" class="status-msg error">{{ errorMessage }}</div>
+
+<!-- Loading -->
+<div *ngIf="isLoading" class="spinner-overlay">
+  <div class="spinner"></div>
+  <p style="color: var(--muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">RECONSTRUCTING TIMELINE...</p>
+</div>
+
+<!-- Table -->
+<div *ngIf="!isLoading && logs.length > 0" class="table-panel">
+  <table class="audit-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Timestamp</th>
+        <th>Actor</th>
+        <th>Action</th>
+        <th>Target</th>
+        <th>Details</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let log of logs">
+        <td class="mono">#{{ log.id }}</td>
+        <td>{{ formatDate(log.timestamp) }}</td>
+        <td class="mono">UID:{{ log.actorId }}</td>
+        <td>
+          <span [class]="'badge ' + getActionClass(log.action)">{{ log.action }}</span>
+        </td>
+        <td><span class="entity-type">{{ log.entityType }}</span> <span class="mono">#{{ log.entityId }}</span></td>
+        <td class="details-cell" [title]="log.details">{{ log.details }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Empty state -->
+<div *ngIf="!isLoading && logs.length === 0" class="empty-state">
+  <div class="empty-icon">📜</div>
+  <h3>No activity found</h3>
+  <p>Try adjusting your search filters to find historical data.</p>
+</div>
+
+<!-- Pagination -->
+<div *ngIf="totalPages > 1" class="pagination">
+  <button class="page-btn" [disabled]="currentPage === 0" (click)="prevPage()">
+    Previous
+  </button>
+  <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+  <button class="page-btn" [disabled]="currentPage >= totalPages - 1" (click)="nextPage()">
+    Next
+  </button>
+</div>

@@ -1,0 +1,113 @@
+<section class="comments-section">
+  <h3 class="comments-title">Responses ({{ comments.length }})</h3>
+
+  <div class="comment-input-area" *ngIf="currentUser; else loginToComment">
+    <textarea
+      [(ngModel)]="newCommentContent"
+      rows="3"
+      placeholder="What are your thoughts?"
+      class="comment-input"
+    ></textarea>
+    <button class="btn-nav-primary" (click)="submitComment()" [disabled]="!newCommentContent.trim() || isSubmitting">
+      {{ isSubmitting ? 'Posting...' : 'Respond' }}
+    </button>
+  </div>
+
+  <ng-template #loginToComment>
+    <div class="login-box">
+      <p>Sign in to leave a response.</p>
+      <a routerLink="/login" class="btn-nav-primary">Sign In</a>
+    </div>
+  </ng-template>
+
+  <div *ngIf="isLoading" class="comments-loading">Loading comments...</div>
+  <div *ngIf="errorMessage" class="comments-error">{{ errorMessage }}</div>
+
+  <div class="comments-list" *ngIf="!isLoading">
+    <div class="comment-item" *ngFor="let comment of rootComments; trackBy: trackByCommentId">
+      <div class="comment-header">
+        <div class="avatar">{{ getAuthorLabel(comment).charAt(0) }}</div>
+        <div>
+          <a class="author" [routerLink]="getAuthorLink(comment)">{{ getAuthorLabel(comment) }}</a>
+          <p class="date">{{ comment.createdAt | date:'mediumDate' }}</p>
+        </div>
+      </div>
+      <div *ngIf="activeEditId !== comment.commentId; else editComment">
+        <p class="content">{{ comment.content }}</p>
+      </div>
+
+      <ng-template #editComment>
+        <textarea
+          class="comment-input nested"
+          [(ngModel)]="editingDrafts[comment.commentId]"
+          rows="3"
+        ></textarea>
+        <div class="comment-actions">
+          <button class="text-action" (click)="saveEdit(comment.commentId)">Save</button>
+          <button class="text-action muted" (click)="cancelEdit()">Cancel</button>
+        </div>
+      </ng-template>
+
+      <div class="comment-actions">
+        <button class="text-action" *ngIf="currentUser" (click)="toggleLike(comment)">
+          {{ likedCommentIds.has(comment.commentId) ? 'Unlike' : 'Like' }} ({{ comment.likesCount || 0 }})
+        </button>
+        <button class="text-action" *ngIf="currentUser" (click)="startReply(comment.commentId)">Reply</button>
+        <button class="text-action" *ngIf="canManage(comment)" (click)="startEdit(comment)">Edit</button>
+        <button class="text-action danger" *ngIf="canManage(comment)" (click)="deleteComment(comment)">Delete</button>
+      </div>
+
+      <div class="reply-box" *ngIf="activeReplyId === comment.commentId">
+        <textarea
+          [(ngModel)]="replyDrafts[comment.commentId]"
+          rows="2"
+          placeholder="Write a reply..."
+          class="comment-input nested"
+        ></textarea>
+        <button
+          class="btn-nav-primary"
+          (click)="submitReply(comment.commentId)"
+          [disabled]="!replyDrafts[comment.commentId]?.trim() || isSubmitting"
+        >
+          {{ isSubmitting ? 'Posting...' : 'Reply' }}
+        </button>
+      </div>
+
+      <div class="reply-list" *ngIf="getReplies(comment.commentId).length > 0">
+        <div class="reply-item" *ngFor="let reply of getReplies(comment.commentId); trackBy: trackByCommentId">
+          <div class="comment-header">
+            <div class="avatar small">{{ getAuthorLabel(reply).charAt(0) }}</div>
+            <div>
+              <a class="author" [routerLink]="getAuthorLink(reply)">{{ getAuthorLabel(reply) }}</a>
+              <p class="date">{{ reply.createdAt | date:'mediumDate' }}</p>
+            </div>
+          </div>
+
+          <div *ngIf="activeEditId !== reply.commentId; else editReply">
+            <p class="content">{{ reply.content }}</p>
+          </div>
+
+          <ng-template #editReply>
+            <textarea
+              class="comment-input nested"
+              [(ngModel)]="editingDrafts[reply.commentId]"
+              rows="3"
+            ></textarea>
+            <div class="comment-actions">
+              <button class="text-action" (click)="saveEdit(reply.commentId)">Save</button>
+              <button class="text-action muted" (click)="cancelEdit()">Cancel</button>
+            </div>
+          </ng-template>
+
+          <div class="comment-actions">
+            <button class="text-action" *ngIf="currentUser" (click)="toggleLike(reply)">
+              {{ likedCommentIds.has(reply.commentId) ? 'Unlike' : 'Like' }} ({{ reply.likesCount || 0 }})
+            </button>
+            <button class="text-action" *ngIf="canManage(reply)" (click)="startEdit(reply)">Edit</button>
+            <button class="text-action danger" *ngIf="canManage(reply)" (click)="deleteComment(reply)">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

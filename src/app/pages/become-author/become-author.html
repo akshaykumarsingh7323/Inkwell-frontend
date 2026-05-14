@@ -1,0 +1,102 @@
+<div class="auth-wrapper">
+  <div class="auth-container">
+    
+    <!-- Left Side: Branding/Context -->
+    <div class="left-panel">
+      <div class="auth-logo" routerLink="/">
+        <span class="material-symbols-outlined logo-icon">history_edu</span>
+        <span class="logo-text">InkWell</span>
+      </div>
+
+      <div class="auth-header">
+        <h1 class="font-serif">Become an Author</h1>
+        <p>
+          Complete your profile to start publishing your stories. You'll need a unique username and a contact number for verification.
+        </p>
+      </div>
+      
+      <div class="perks-list" style="margin-top: 2rem;">
+        <div class="perk-item" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: var(--on-surface-muted);">
+            <span class="material-symbols-outlined" style="color: var(--primary);">check_circle</span>
+            <span>Publish Unlimited Stories</span>
+        </div>
+        <div class="perk-item" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: var(--on-surface-muted);">
+            <span class="material-symbols-outlined" style="color: var(--primary);">check_circle</span>
+            <span>Analytics Dashboard</span>
+        </div>
+        <div class="perk-item" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; color: var(--on-surface-muted);">
+            <span class="material-symbols-outlined" style="color: var(--primary);">check_circle</span>
+            <span>Build Your Audience</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: The Form -->
+    <div class="right-panel">
+      <form [formGroup]="becomeAuthorForm" (ngSubmit)="onSubmit()" class="auth-form">
+        
+        <!-- Feedback Banner -->
+        <div *ngIf="errorMessage" class="auth-feedback error" role="alert">
+          {{ errorMessage }}
+        </div>
+
+        <!-- Verified Email Display -->
+        <div class="auth-field">
+          <label class="auth-label">Verified Email</label>
+          <div class="verified-badge" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(52, 168, 83, 0.1); border: 1px solid rgba(52, 168, 83, 0.3); border-radius: 8px; color: #34A853; font-weight: 600; font-size: 0.875rem;">
+            <span class="material-symbols-outlined" style="font-size: 1.25rem;">verified</span>
+            <span>{{ userEmail }}</span>
+          </div>
+        </div>
+
+        <!-- Username Selection -->
+        <div class="auth-field">
+          <label for="author-username" class="auth-label">Choose Your Username</label>
+          <input
+            class="auth-input"
+            id="author-username"
+            formControlName="username"
+            type="text"
+            placeholder="e.g. creative_writer"
+          />
+          <p class="field-hint" style="font-size: 0.75rem; color: var(--on-surface-muted); margin-top: 0.25rem;">Only letters, numbers, and underscores.</p>
+        </div>
+
+        <!-- Phone Number -->
+        <div class="auth-field">
+          <label for="author-phone" class="auth-label">Contact Number</label>
+          <input
+            class="auth-input"
+            id="author-phone"
+            formControlName="phoneNumber"
+            type="tel"
+            placeholder="+91 00000 00000"
+          />
+        </div>
+
+        <!-- Terms & Conditions -->
+        <div class="auth-field terms-field" style="display: flex; align-items: flex-start; gap: 0.75rem; margin-top: 1rem;">
+          <input
+            type="checkbox"
+            id="terms"
+            formControlName="acceptedTerms"
+            style="width: 1.25rem; height: 1.25rem; margin-top: 0.125rem; cursor: pointer; accent-color: var(--primary);"
+          />
+          <label for="terms" style="font-size: 0.8125rem; color: var(--on-surface-muted); line-height: 1.4; cursor: pointer;">
+            I agree to the Author Terms of Service and understand that my content will be subject to community guidelines.
+          </label>
+        </div>
+
+        <!-- Action Button -->
+        <button class="auth-submit-btn" type="submit" [disabled]="becomeAuthorForm.invalid || isLoading" style="margin-top: 1.5rem;">
+          <span *ngIf="!isLoading">Start Writing</span>
+          <div *ngIf="isLoading" class="spinner-small"></div>
+        </button>
+
+        <div class="auth-switch" style="margin-top: 1.5rem; text-align: center;">
+            Changed your mind? <a routerLink="/" style="color: var(--primary); font-weight: 700;">Back to Home</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

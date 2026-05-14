@@ -1,0 +1,96 @@
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar" *ngIf="(currentUser$ | async) as user">
+    <div class="brand">
+      <div class="brand-inner">
+        <div class="brand-icon">✍️</div>
+        <div>
+          <div class="brand-name">InkWell</div>
+          <div class="brand-tag">AUTHOR v2.0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="admin-profile">
+      <div class="admin-label">Author Console</div>
+      <div class="admin-name">{{ user.fullName || user.username }}</div>
+      <div class="admin-email">{{ user.email }}</div>
+    </div>
+
+    <nav>
+      <div class="nav-section">
+        <div class="nav-section-label">General</div>
+        <a class="nav-item" routerLink="/author-dashboard" [class.active]="activeSection === 'overview'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+          Overview
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Content</div>
+        <a class="nav-item" routerLink="/my-posts" [class.active]="activeSection === 'posts'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 6h6M5 9h4"/></svg>My Posts
+        </a>
+        <a class="nav-item" routerLink="/create-post" [class.active]="activeSection === 'create'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>Create Post
+        </a>
+        <a class="nav-item" routerLink="/comment-moderation" [class.active]="activeSection === 'comments'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12a1 1 0 011 1v7a1 1 0 01-1 1H5l-3 2V4a1 1 0 011-1z"/></svg>Comments
+        </a>
+        <a class="nav-item" routerLink="/media-library" [class.active]="activeSection === 'media'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><circle cx="5" cy="5" r="2"/><path d="M14 10l-3-3-4 4-2-2-3 3"/></svg>Media Library
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Performance</div>
+        <a class="nav-item" routerLink="/post-analytics" [class.active]="activeSection === 'analytics'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13h12M4 10l3-4 3 2 3-5"/></svg>Analytics
+        </a>
+        <a class="nav-item" routerLink="/followers" [class.active]="activeSection === 'followers'">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 12l-3.5 2 1-4.5L2 6l4.5-.5L8 1l1.5 4.5L14 6l-3.5 3.5 1 4.5z"/></svg>Followers
+        </a>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-label">Account</div>
+        <button class="nav-item" (click)="logout()" style="background: none; border: none; width: 100%; cursor: pointer; text-align: left;">
+          <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3M11 11l3-3-3-3M14 8H6"/></svg>Logout
+        </button>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="version-badge">inkwell@studio.2.0</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="main">
+    <header class="topbar">
+      <nav class="topbar-nav">
+        <a class="topbar-link" routerLink="/home">Home</a>
+        <a class="topbar-link" routerLink="/explore">Explore</a>
+        <a class="topbar-link active" routerLink="/author-dashboard">Author Studio</a>
+      </nav>
+
+      <div class="topbar-right" *ngIf="(currentUser$ | async) as user">
+        <div class="icon-btn" title="Toggle Theme" (click)="toggleTheme()">
+          <span class="material-symbols-outlined" style="font-size: 20px;">{{ isDarkMode() ? 'light_mode' : 'dark_mode' }}</span>
+        </div>
+        <a class="icon-btn" title="Notifications" routerLink="/notifications">
+          <span class="material-symbols-outlined" style="font-size: 20px;">notifications</span>
+          <span class="notification-badge" *ngIf="unreadCount() > 0">{{ unreadCount() }}</span>
+        </a>
+        <div class="avatar" [routerLink]="['/author', user.userId]" [queryParams]="{ edit: 'true' }" title="Profile" style="overflow: hidden;">
+          <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" alt="Profile" style="width:100%; height:100%; object-fit:cover;">
+          <span *ngIf="!user.avatarUrl">{{ user.username.charAt(0).toUpperCase() }}</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content">
+      <ng-content></ng-content>
+    </main>
+  </div>
+</div>

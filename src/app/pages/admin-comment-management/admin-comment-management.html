@@ -1,0 +1,43 @@
+<main class="comment-management-content">
+  <div class="page-header">
+    <div class="page-eyebrow">Discussion Governance</div>
+    <h1 class="page-title">Platform Comment Moderation</h1>
+  </div>
+
+
+
+      <div *ngIf="isLoading" class="spinner-overlay">
+        <div class="spinner"></div>
+        <p style="color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">RECALLING CONVERSATIONS...</p>
+      </div>
+
+      <div class="comment-grid" *ngIf="!isLoading">
+        <article class="comment-card" *ngFor="let comment of comments">
+          <div class="comment-header">
+            <div class="user-info">
+              <div class="user-avatar">
+                {{ 'U' }}
+              </div>
+              <div>
+                <span class="user-name">Author ID: #{{ comment.authorId }}</span>
+                <span class="comment-date">{{ comment.createdAt | date:'MMM d, yyyy · HH:mm' }}</span>
+              </div>
+            </div>
+            <div class="post-link">Post ID: #{{ comment.postId }}</div>
+          </div>
+          
+          <div class="comment-body">{{ comment.content }}</div>
+
+          <div class="action-row">
+            <button class="action-btn approve" (click)="approveComment(comment.commentId)">Approve Comment</button>
+            <button class="action-btn reject" (click)="rejectComment(comment.commentId)">Reject &amp; Delete</button>
+          </div>
+        </article>
+
+        <div class="empty-state" *ngIf="comments.length === 0">
+          <div class="empty-icon">💬</div>
+          <h3>Inbox Zero</h3>
+          <p>No comments are currently awaiting moderation. Platform is clean!</p>
+        </div>
+      </div>
+</main>

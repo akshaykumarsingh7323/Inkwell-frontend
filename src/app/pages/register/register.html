@@ -1,0 +1,125 @@
+<div class="auth-wrapper">
+  <div class="auth-container register-container">
+    
+    <!-- Left Side: Branding -->
+    <div class="left-panel">
+      <div class="auth-logo" routerLink="/">
+        <span class="material-symbols-outlined logo-icon">history_edu</span>
+        <span class="logo-text">InkWell</span>
+      </div>
+
+      <div class="auth-header">
+        <h1 class="font-serif">Join InkWell</h1>
+        <p>
+          Create your account and choose whether you want to read or publish.
+        </p>
+      </div>
+    </div>
+
+    <!-- Right Side: Form -->
+    <div class="right-panel">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="auth-form">
+        
+        <!-- Feedback Banner -->
+        <div class="feedback-placeholder">
+          <div *ngIf="errorMessage && !emailAlreadyExists" class="auth-feedback error" role="alert">{{ errorMessage }}</div>
+          <div *ngIf="successMessage" class="auth-feedback success" role="alert">{{ successMessage }}</div>
+        </div>
+
+        <!-- Email Already Registered Dialog -->
+        <div class="email-dialog-backdrop" *ngIf="emailAlreadyExists" (click)="emailAlreadyExists = false">
+          <div class="email-dialog" (click)="$event.stopPropagation()">
+            <div class="email-dialog-icon">
+              <span class="material-symbols-outlined">person_check</span>
+            </div>
+            <h3>Already Registered</h3>
+            <p>This email is already registered on Inkwell. Please log in to continue.</p>
+            <button class="email-dialog-btn" (click)="goToLogin()">OK, Go to Login</button>
+          </div>
+        </div>
+
+        <!-- Full Name -->
+        <div class="auth-field">
+          <label for="reg-fullname" class="auth-label">Full Name</label>
+          <input class="auth-input" id="reg-fullname" formControlName="fullName" type="text" placeholder="Your full name" />
+          <p class="auth-field-error" *ngIf="showFieldError('fullName') && fullNameControl?.hasError('required')">Full name is required.</p>
+          <p class="auth-field-error" *ngIf="showFieldError('fullName') && fullNameControl?.hasError('pattern')">Start with a capital letter and use letters/spaces only.</p>
+        </div>
+
+        <!-- Email -->
+        <div class="auth-field">
+          <label for="reg-email" class="auth-label">Email Address</label>
+          <input class="auth-input" id="reg-email" formControlName="email" type="email" placeholder="you@example.com" />
+          <p class="auth-field-error" *ngIf="showFieldError('email') && emailControl?.hasError('required')">Email is required.</p>
+          <p class="auth-field-error" *ngIf="showFieldError('email') && emailControl?.hasError('pattern')">Enter a valid email address.</p>
+        </div>
+
+        <!-- Password -->
+        <div class="auth-field">
+          <label for="reg-password" class="auth-label">Password</label>
+          <div class="password-input-wrapper">
+            <input class="auth-input" id="reg-password" formControlName="password" [type]="showPassword ? 'text' : 'password'" placeholder="Create a strong password" />
+            <button type="button" class="password-toggle" (click)="togglePassword()">
+              <span class="material-symbols-outlined" style="font-size: 1.25rem;">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+            </button>
+          </div>
+          <p class="auth-field-error" *ngIf="showFieldError('password') && passwordControl?.hasError('required')">Password is required.</p>
+          <p class="auth-field-error" *ngIf="showFieldError('password') && passwordControl?.hasError('pattern')" style="white-space: nowrap; font-size: 11.5px;">Use 8+ characters with uppercase, lowercase, number, and symbol.</p>
+        </div>
+
+
+        <!-- Role Selection -->
+        <div class="auth-field" style="margin-top: 0.5rem;">
+          <label for="reg-role" class="auth-label">Account Type</label>
+          <select class="auth-input" id="reg-role" formControlName="role" style="cursor: pointer;">
+            <option value="READER">Reader</option>
+            <option value="AUTHOR">Author</option>
+          </select>
+        </div>
+
+        <!-- Accepted Terms -->
+        <div class="auth-field" *ngIf="registerForm.get('role')?.value === 'AUTHOR'" style="margin-top: 0.5rem;">
+          <label class="custom-checkbox" style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+            <input type="checkbox" formControlName="acceptedTerms" />
+            <span class="checkbox-label" style="font-size: 0.85rem; color: var(--on-surface-muted);">I accept the author terms and conditions.</span>
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button class="auth-submit-btn" type="submit" [disabled]="registerForm.invalid || isLoading">
+          <span *ngIf="!isLoading">Create Account</span>
+          <div *ngIf="isLoading" class="spinner-small"></div>
+        </button>
+
+        <div class="auth-divider"><span>or</span></div>
+
+        <!-- Social Auth Grid -->
+        <div class="social-auth-grid">
+          <button type="button" (click)="registerWithGoogle()" class="btn-social btn-google">
+            <svg width="18" height="18" viewBox="0 0 18 18">
+              <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+              <path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+              <path d="M3.964 10.712c-.18-.54-.282-1.117-.282-1.712s.102-1.173.282-1.712V4.956H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.044l3.007-2.332z" fill="#FBBC05"/>
+              <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.956l3.007 2.332C4.672 5.164 6.656 3.58 9 3.58z" fill="#EA4335"/>
+            </svg>
+            Google
+          </button>
+          <button type="button" (click)="registerWithGithub()" class="btn-social btn-github">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>
+            </svg>
+            GitHub
+          </button>
+        </div>
+
+        <div class="auth-switch">
+          Already have an account? <a routerLink="/login">Log In</a>
+        </div>
+        
+        <div class="auth-guest-link" style="text-align: center; margin-top: 1.5rem;">
+          <a routerLink="/" style="color: #64748b; font-weight: 500; text-decoration: underline; font-size: 0.9rem;">Continue as Guest</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

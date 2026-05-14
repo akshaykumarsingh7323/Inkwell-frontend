@@ -1,0 +1,191 @@
+<main class="editor-content">
+  <div class="page-header">
+    <h1 class="page-title">{{ postId ? 'Edit Post' : 'Create Post' }}</h1>
+  </div>
+
+  <div class="editor-feedback editor-feedback--success" *ngIf="statusMessage">
+    <span class="material-symbols-outlined">check_circle</span>
+    <span>{{ statusMessage }}</span>
+  </div>
+
+  <div class="editor-feedback editor-feedback--error" *ngIf="errorMessage">
+    <span class="material-symbols-outlined">error</span>
+    <span>{{ errorMessage }}</span>
+  </div>
+
+  <div class="studio-editor">
+    <section class="studio-editor__main">
+      <div class="studio-form-card">
+        <div class="studio-form-card__header">
+          <button class="back-link" type="button" routerLink="/my-posts" title="Go back">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          
+          <div class="editor-status-container">
+            <span class="auto-save-text" *ngIf="!isSaving && lastSaved">Last saved at {{ lastSaved | date:'h:mm a' }}</span>
+            <span class="auto-save-text" *ngIf="isSaving">Saving...</span>
+            <div class="status-pill">
+              <span class="status-pill__dot" [class.saving]="isSaving || isUploading"></span>
+              <span>{{ (isSaving || isUploading) ? 'Syncing' : (lastSaved ? 'Saved' : 'Draft') }}</span>
+            </div>
+          </div>
+        </div>
+
+        <label class="studio-field">
+          <span>Post title</span>
+          <input type="text" class="studio-input studio-input--title" placeholder="Post title" [(ngModel)]="postTitle" (input)="autoResizeTitle($event)" />
+        </label>
+
+        <label class="studio-field">
+          <span>Short excerpt or summary</span>
+          <input type="text" class="studio-input" placeholder="Short excerpt or summary" [(ngModel)]="postExcerpt" />
+        </label>
+
+        <label class="studio-field">
+          <span>Featured image URL</span>
+          <input
+            type="text"
+            class="studio-input"
+            placeholder="Featured image URL"
+            [(ngModel)]="featuredImageUrl"
+            (change)="featuredImageMediaId = null"
+          />
+        </label>
+
+        <div class="studio-grid studio-grid--meta">
+          <label class="studio-field">
+            <span>Category</span>
+            <select class="studio-input" [(ngModel)]="selectedCategoryId">
+              <option [ngValue]="null">Select category</option>
+              <option *ngFor="let cat of categories" [ngValue]="cat.categoryId">{{ cat.name }}</option>
+            </select>
+          </label>
+
+          <label class="studio-field">
+            <span>Tags</span>
+            <input
+              class="studio-input"
+              placeholder="Tags (comma separated)"
+              type="text"
+              [(ngModel)]="tagInput"
+              (keyup)="addTag($event)"
+              list="tagSuggestions"
+            />
+            <datalist id="tagSuggestions">
+              <option *ngFor="let tag of allTags" [value]="tag.name"></option>
+            </datalist>
+          </label>
+        </div>
+
+        <div class="studio-grid studio-grid--monetization" style="margin-top: 1rem; padding: 1rem; background: rgba(0, 70, 67, 0.03); border-radius: var(--radius-md); border: 1px dashed var(--border);">
+          <label class="studio-field checkbox-field" style="flex-direction: row; align-items: center; gap: 12px; cursor: pointer;">
+            <input type="checkbox" [(ngModel)]="isPremium" style="width: 18px; height: 18px; cursor: pointer;" />
+            <span style="font-weight: 700; color: var(--primary);">Make this post Premium 🔒</span>
+          </label>
+
+          <label class="studio-field" *ngIf="isPremium" style="margin-top: 1rem;">
+            <span>Price (₹)</span>
+            <input type="number" class="studio-input" placeholder="Set price (e.g. 99)" [(ngModel)]="price" min="1" required />
+            <span class="field-hint" style="font-size: 0.75rem; color: var(--on-surface-muted); margin-top: 4px;">Minimum price ₹1</span>
+          </label>
+        </div>
+
+        <div class="tag-list" *ngIf="selectedTags.length > 0">
+          <span class="tag-badge" *ngFor="let tag of selectedTags">
+            {{ tag.name }}
+            <button type="button" (click)="removeTag(tag)">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </span>
+        </div>
+
+        <p class="editor-inline-error" *ngIf="tagError">{{ tagError }}</p>
+
+        <div class="editor-toolbar">
+          <button class="toolbar-btn" type="button" (click)="toggleBold()" [class.active]="editor?.isActive('bold')" title="Bold"><span class="material-symbols-outlined">format_bold</span></button>
+          <button class="toolbar-btn" type="button" (click)="toggleItalic()" [class.active]="editor?.isActive('italic')" title="Italic"><span class="material-symbols-outlined">format_italic</span></button>
+          <button class="toolbar-btn" type="button" (click)="toggleUnderline()" [class.active]="editor?.isActive('underline')" title="Underline"><span class="material-symbols-outlined">format_underlined</span></button>
+          <button class="toolbar-btn" type="button" (click)="insertLink()" [class.active]="editor?.isActive('link')" title="Link"><span class="material-symbols-outlined">link</span></button>
+          <button class="toolbar-btn" type="button" (click)="toggleBulletList()" [class.active]="editor?.isActive('bulletList')" title="Bullet List"><span class="material-symbols-outlined">format_list_bulleted</span></button>
+          <button class="toolbar-btn" type="button" (click)="toggleOrderedList()" [class.active]="editor?.isActive('orderedList')" title="Numbered List"><span class="material-symbols-outlined">format_list_numbered</span></button>
+          <button class="toolbar-btn" type="button" (click)="toggleQuote()" [class.active]="editor?.isActive('blockquote')" title="Quote"><span class="material-symbols-outlined">format_quote</span></button>
+          <button class="toolbar-btn" type="button" (click)="toggleCode()" [class.active]="editor?.isActive('codeBlock')" title="Code Block"><span class="material-symbols-outlined">code</span></button>
+          <button class="toolbar-btn" type="button" (click)="triggerInlineImageUpload()" title="Insert Image"><span class="material-symbols-outlined">image</span></button>
+        </div>
+
+        <div class="editor-body">
+          <div #editorContainer class="tiptap-editor"></div>
+          <input #inlineImageInput type="file" accept="image/*" hidden (change)="onInlineImageSelected($event)">
+        </div>
+      </div>
+    </section>
+
+    <aside class="studio-editor__side">
+      <section class="side-card">
+        <div class="side-card__header">
+          <h3>Featured media</h3>
+          <button class="side-link" type="button" (click)="triggerFeaturedImageUpload()">
+            {{ isUploading ? 'Uploading...' : 'Upload' }}
+          </button>
+        </div>
+
+        <div class="featured-preview" (click)="triggerFeaturedImageUpload()">
+          <img *ngIf="featuredImageUrl" [src]="featuredImageUrl" alt="Featured image preview" />
+          <div class="featured-preview__empty" *ngIf="!featuredImageUrl">
+            <span class="material-symbols-outlined">add_photo_alternate</span>
+            <span>Add featured image</span>
+          </div>
+          <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)">
+        </div>
+
+        <div class="side-card__meta">
+          <span>Words {{ wordCount }}</span>
+          <span>Read time {{ readTime }} min</span>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <div class="side-card__header">
+          <h3>Your uploads</h3>
+          <span>{{ userMedia.length }} assets</span>
+        </div>
+
+        <select class="studio-input" (change)="selectMedia(userMedia[$any($event.target).value])">
+          <option value="">Select from library</option>
+          <option *ngFor="let media of userMedia; let i = index" [value]="i">{{ media.filename }}</option>
+        </select>
+
+        <!-- Publish Button moved here -->
+        <div class="sidebar-publish-container" style="margin-top: 1.5rem;">
+          <button class="editor-action editor-action--primary" style="width: 100%;" type="button" (click)="confirmPublish()" [disabled]="isSaving || isUploading">
+            Publish Post
+          </button>
+        </div>
+
+        <div class="side-card__slug" *ngIf="postSlug" style="margin-top: 1.5rem;">
+          <span>SEO slug</span>
+          <code>inkwell.com/post/{{ postSlug }}</code>
+        </div>
+      </section>
+    </aside>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showPublishModal" (click)="cancelPublish()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-icon">🚀</div>
+      <h2>Publish Post?</h2>
+      <div class="monetization-preview" style="margin: 1rem 0; padding: 0.5rem; border-radius: 8px;" [style.background]="isPremium ? '#fef3c7' : '#f3f4f6'">
+        <span *ngIf="!isPremium" style="color: #4b5563; font-weight: 600;">🌿 Free Post</span>
+        <span *ngIf="isPremium" style="color: #92400e; font-weight: 600;">💎 Premium Post · ₹{{ price }}</span>
+      </div>
+      <p>Are you sure you want to publish <strong>"{{ postTitle }}"</strong>? It will be visible to all readers immediately.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" type="button" (click)="cancelPublish()">Cancel</button>
+        <button class="btn-confirm" type="button" (click)="publishPost()" [disabled]="isSaving">
+          {{ isSaving ? 'Publishing...' : 'Yes, Publish Now' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</main>

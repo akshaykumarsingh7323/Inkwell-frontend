@@ -1,0 +1,43 @@
+<app-author-studio-shell activeSection="followers">
+  <div class="followers-container">
+    <header class="community-header">
+      <div class="header-text">
+        <h1>Your Community</h1>
+        <p>Manage and connect with your most loyal readers.</p>
+      </div>
+      <div class="community-stats">
+        <div class="mini-stat">
+          <span class="count">{{ followers.length }}</span>
+          <span class="label">Total Followers</span>
+        </div>
+      </div>
+    </header>
+
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Fetching your community...</p>
+    </div>
+
+    <div *ngIf="!isLoading && !errorMessage && followers.length === 0" class="empty-state">
+      <div class="empty-icon">🤝</div>
+      <h2>No followers yet</h2>
+      <p>Start publishing great content to build your community!</p>
+    </div>
+
+    <div *ngIf="!isLoading && followers.length > 0" class="followers-grid">
+      <div class="follower-card" *ngFor="let f of followers">
+        <div class="follower-avatar">
+          {{ getInitial(f.fullName || f.email) }}
+        </div>
+        <div class="follower-info">
+          <h3>{{ f.fullName || 'Anonymous Reader' }}</h3>
+          <p>{{ f.email }}</p>
+          <span class="join-date">Joined {{ f.subscribedAt | date:'mediumDate' }}</span>
+        </div>
+        <div class="follower-badge" [class.active]="f.status === 'ACTIVE'">
+          {{ f.status || 'Active' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</app-author-studio-shell>

@@ -1,0 +1,27 @@
+<header class="post-header">
+  <div class="post-header-content">
+    <span class="category-badge">{{ categoryName }}</span>
+    <h1 class="post-title">{{ post.title }}</h1>
+    
+    <div class="post-meta-row">
+      <a [routerLink]="['/author', post.authorId]" class="author-link">
+        <div class="author-avatar">
+          <img *ngIf="authorAvatar" [src]="authorAvatar" [alt]="authorName">
+          <span *ngIf="!authorAvatar">{{ authorName.charAt(0) }}</span>
+        </div>
+        <div class="author-info">
+          <span class="author-name">{{ authorName }}</span>
+          <div class="post-date-row">
+            <span class="post-date">{{ post.publishedAt || post.createdAt | date:'longDate' }}</span>
+            <span class="dot">·</span>
+            <span class="read-time">{{ readTime || post.readTimeMin || 1 }} min read</span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+  
+  <figure class="post-cover-image">
+    <img [src]="getHeroImage()" [alt]="post.title">
+  </figure>
+</header>

@@ -1,0 +1,22 @@
+<section class="author-bio-card">
+  <div class="author-bio-header">
+    <a [routerLink]="['/author', author.userId]" class="author-avatar-large">
+      <img *ngIf="author.avatarUrl" [src]="author.avatarUrl" [alt]="author.fullName">
+      <span *ngIf="!author.avatarUrl">{{ author.username.charAt(0) }}</span>
+    </a>
+    
+    <div class="author-details">
+      <div class="author-name-row">
+        <h3>Written by <a [routerLink]="['/author', author.userId]">{{ author.fullName || author.username }}</a></h3>
+        <button class="follow-btn" 
+                [class.following]="isFollowing" 
+                [class.pending]="isPending"
+                [disabled]="isPending"
+                (click)="toggleFollow()">
+          {{ isFollowing ? 'Unfollow' : (isPending ? 'Pending' : 'Follow') }}
+        </button>
+      </div>
+      <p class="author-bio-text">{{ author.bio || 'Sharing thoughts and stories on Inkwell.' }}</p>
+    </div>
+  </div>
+</section>

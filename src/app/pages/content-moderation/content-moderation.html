@@ -1,0 +1,121 @@
+<app-sidebar></app-sidebar>
+
+<main class="moderation-main">
+  <div class="content-container">
+    <header class="page-header">
+      <h1 class="page-title">Content Operations</h1>
+      <p class="page-description">Moderate incoming discussion, govern taxonomy, and send platform-wide admin broadcasts.</p>
+    </header>
+
+    <div *ngIf="statusMessage" class="status success">{{ statusMessage }}</div>
+    <div *ngIf="errorMessage" class="status error">{{ errorMessage }}</div>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Pending Comments</h2>
+        <span class="count-chip">{{ comments.length }}</span>
+      </div>
+
+      <div *ngIf="isLoadingComments" class="empty-state">Loading pending comments...</div>
+      <div *ngIf="!isLoadingComments && comments.length === 0" class="empty-state">No pending comments right now.</div>
+
+      <div class="comment-list" *ngIf="!isLoadingComments && comments.length > 0">
+        <article class="comment-card" *ngFor="let comment of comments">
+          <div class="comment-meta">
+            <span>Post #{{ comment.postId }}</span>
+            <span>Author #{{ comment.authorId }}</span>
+            <span>{{ comment.createdAt | date:'medium' }}</span>
+          </div>
+          <p class="comment-copy">{{ comment.content }}</p>
+          <div class="action-row">
+            <button class="btn-primary" type="button" (click)="approveComment(comment.commentId)">Approve</button>
+            <button class="btn-secondary danger" type="button" (click)="rejectComment(comment.commentId)">Reject</button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="split-grid">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>Categories</h2>
+          <span class="count-chip">{{ categoriesFlat.length }}</span>
+        </div>
+
+        <div class="form-block">
+          <input class="form-input" type="text" placeholder="Category name" [(ngModel)]="categoryDraft.name" />
+          <textarea class="form-textarea" rows="3" placeholder="Category description" [(ngModel)]="categoryDraft.description"></textarea>
+          <select class="form-select" [(ngModel)]="categoryDraft.parentCategoryId">
+            <option [ngValue]="null">No Parent (Top Level)</option>
+            <option *ngFor="let cat of categoriesFlat" [ngValue]="cat.categoryId">{{ cat.name }}</option>
+          </select>
+          <button class="btn-primary" type="button" (click)="createCategory()">Create Category</button>
+        </div>
+
+        <div *ngIf="isLoadingTaxonomy" class="empty-state">Loading categories...</div>
+        
+        <ng-template #categoryTree let-nodes="nodes" let-level="level">
+          <div class="taxonomy-list" [style.padding-left.px]="level * 20">
+            <ng-container *ngFor="let category of nodes">
+              <div class="taxonomy-row">
+                <div>
+                  <h3>{{ category.name }}</h3>
+                  <p>{{ category.description || 'No description.' }}</p>
+                </div>
+                <button class="icon-btn danger" type="button" (click)="deleteCategory(category.categoryId)">Delete</button>
+              </div>
+              <ng-container *ngIf="category.children && category.children.length > 0">
+                <ng-container *ngTemplateOutlet="categoryTree; context: { nodes: category.children, level: level + 1 }"></ng-container>
+              </ng-container>
+            </ng-container>
+          </div>
+        </ng-template>
+
+        <div *ngIf="!isLoadingTaxonomy">
+          <ng-container *ngTemplateOutlet="categoryTree; context: { nodes: categories, level: 0 }"></ng-container>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2>Tags</h2>
+          <span class="count-chip">{{ tags.length }}</span>
+        </div>
+
+        <div class="form-block inline">
+          <input class="form-input" type="text" placeholder="Tag name" [(ngModel)]="tagDraft.name" />
+          <button class="btn-primary" type="button" (click)="createTag()">Create Tag</button>
+        </div>
+
+        <div *ngIf="isLoadingTaxonomy" class="empty-state">Loading tags...</div>
+        <div class="taxonomy-list" *ngIf="!isLoadingTaxonomy">
+          <div class="taxonomy-row compact" *ngFor="let tag of tags">
+            <div>
+              <h3>#{{ tag.name }}</h3>
+              <p>{{ tag.postCount || 0 }} linked posts</p>
+            </div>
+            <button class="icon-btn danger" type="button" (click)="deleteTag(tag.tagId)">Delete</button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h2>Platform Broadcast</h2>
+      </div>
+
+      <div class="form-block">
+        <select class="form-select" [(ngModel)]="broadcast.targetRole">
+          <option value="ALL">All users</option>
+          <option value="READER">Readers</option>
+          <option value="AUTHOR">Authors</option>
+          <option value="ADMIN">Admins</option>
+        </select>
+        <input class="form-input" type="text" placeholder="Notification title" [(ngModel)]="broadcast.title" />
+        <textarea class="form-textarea" rows="4" placeholder="Write the admin message" [(ngModel)]="broadcast.message"></textarea>
+        <button class="btn-primary" type="button" (click)="sendBroadcast()">Send Broadcast</button>
+      </div>
+    </section>
+  </div>
+</main>

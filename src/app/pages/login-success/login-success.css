@@ -1,0 +1,13 @@
+/* Login Success page styles */
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0,0,0,0.05);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

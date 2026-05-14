@@ -1,0 +1,35 @@
+<footer class="reader-footer">
+  <div class="reader-footer__inner">
+    <div class="reader-footer__brand">
+      <a class="reader-footer__logo" routerLink="/">InkWell</a>
+      <p>Thoughtful publishing for readers who prefer clarity over noise.</p>
+    </div>
+
+    <div class="reader-footer__links">
+      <a routerLink="/">Home</a>
+      <a routerLink="/explore">Explore</a>
+      <a routerLink="/notifications">Notifications</a>
+    </div>
+
+    <div class="reader-footer__newsletter" style="max-width: 300px;">
+      <h4 style="margin-bottom: 0.5rem; color: #fff; font-size: 1.1rem;">Subscribe to our newsletter</h4>
+      <p style="font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-bottom: 1rem;">Get the latest articles directly in your inbox.</p>
+      <form (ngSubmit)="subscribe()" style="display: flex; gap: 0.5rem; flex-direction: column;">
+        <div style="display: flex; gap: 0.5rem;">
+          <input type="email" [(ngModel)]="email" name="email" placeholder="Your email address" style="padding: 0.5rem; border-radius: 4px; border: none; outline: none; flex: 1;">
+          <button type="submit" [disabled]="isSubmitting" style="padding: 0.5rem 1rem; border-radius: 4px; border: none; background: #2dd4bf; color: #0f172a; font-weight: bold; cursor: pointer;">
+            {{ isSubmitting ? '...' : 'Subscribe' }}
+          </button>
+        </div>
+        <div *ngIf="statusMessage" [style.color]="isError ? '#f87171' : '#4ade80'" style="font-size: 0.85rem; margin-top: 0.5rem;">
+          {{ statusMessage }}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="reader-footer__meta">
+    <span>© {{ currentYear }} InkWell</span>
+    <span>Built for long-form reading.</span>
+  </div>
+</footer>

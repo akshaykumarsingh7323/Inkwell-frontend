@@ -1,0 +1,103 @@
+<main class="dashboard-content">
+  <div class="admin-revenue-content">
+    <header class="admin-header">
+      <div>
+        <h1>Revenue Analytics</h1>
+        <p>Monitor platform growth and author performance.</p>
+      </div>
+      <button class="btn-refresh" (click)="loadData()">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+    </header>
+
+    <div class="revenue-cards" *ngIf="revenueStats">
+      <div class="stat-card">
+        <span class="label">Platform Revenue (Commission)</span>
+        <h2 class="value">₹{{ revenueStats.totalRevenue | number:'1.2-2' }}</h2>
+        <span class="trend up">Admin Cut</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Total Transaction Volume</span>
+        <h2 class="value">₹{{ revenueStats.totalVolume | number:'1.2-2' }}</h2>
+        <span class="trend up">Gross Throughput</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Total Transactions</span>
+        <h2 class="value">{{ revenueStats.transactionCount }}</h2>
+        <span class="trend up">Successful payments</span>
+      </div>
+      <div class="stat-card">
+        <span class="label">Active Subscriptions</span>
+        <h2 class="value">42</h2>
+        <span class="trend up">+5 new today</span>
+      </div>
+    </div>
+
+    <!-- Revenue Trend Chart -->
+    <div class="admin-section chart-section" style="margin-bottom: 32px;">
+      <div class="section-header">
+        <h2>Revenue Trend</h2>
+        <span class="label">Last 7 Days</span>
+      </div>
+      <div class="chart-container" style="display: flex; align-items: flex-end; justify-content: space-between; height: 150px; padding: 20px 0;">
+        <div class="chart-bar" style="height: 30%; width: 10%; background: var(--primary); opacity: 0.4; border-radius: 4px;"></div>
+        <div class="chart-bar" style="height: 45%; width: 10%; background: var(--primary); opacity: 0.5; border-radius: 4px;"></div>
+        <div class="chart-bar" style="height: 40%; width: 10%; background: var(--primary); opacity: 0.6; border-radius: 4px;"></div>
+        <div class="chart-bar" style="height: 65%; width: 10%; background: var(--primary); opacity: 0.7; border-radius: 4px;"></div>
+        <div class="chart-bar" style="height: 60%; width: 10%; background: var(--primary); opacity: 0.8; border-radius: 4px;"></div>
+        <div class="chart-bar" style="height: 85%; width: 10%; background: var(--primary); opacity: 0.9; border-radius: 4px;"></div>
+        <div class="chart-bar" style="height: 100%; width: 10%; background: var(--primary); border-radius: 4px;"></div>
+      </div>
+      <div class="chart-labels" style="display: flex; justify-content: space-between; font-size: 10px; color: var(--on-surface-muted);">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+      </div>
+    </div>
+
+    <div class="admin-grid">
+      <!-- Top Earning Authors -->
+      <section class="admin-section">
+        <div class="section-header">
+          <h2>Top Earning Authors</h2>
+        </div>
+        <div class="author-list">
+          <div class="author-row" *ngFor="let author of topAuthors; let i = index">
+            <span class="rank">#{{ i + 1 }}</span>
+            <span class="author-id">ID: {{ author.authorId }}</span>
+            <span class="earnings">₹{{ author.totalEarnings | number:'1.2-2' }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Transactions -->
+      <section class="admin-section">
+        <div class="section-header">
+          <h2>Recent Transactions</h2>
+        </div>
+        <div class="transaction-table-container">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>User ID</th>
+                <th>Total Amount</th>
+                <th>Commission</th>
+                <th>Author Share</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tx of transactions.slice(0, 15)">
+                <td>{{ tx.orderId }}</td>
+                <td>UID:{{ tx.userId }}</td>
+                <td>₹{{ tx.totalAmount | number:'1.2-2' }}</td>
+                <td style="color: var(--primary); font-weight: 700;">₹{{ tx.adminCommission | number:'1.2-2' }}</td>
+                <td>₹{{ tx.authorEarning | number:'1.2-2' }}</td>
+                <td><span class="badge" [class]="tx.status.toLowerCase()">{{ tx.status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>

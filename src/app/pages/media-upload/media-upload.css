@@ -1,0 +1,23 @@
+.upload-main {
+  padding: 2rem;
+  margin-left: 270px;
+}
+
+.upload-card {
+  max-width: 520px;
+  border: 1px solid var(--outline-variant);
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+}
+
+.status {
+  margin-top: 0.75rem;
+}
+
+@media (max-width: 1024px) {
+  .upload-main {
+    margin-left: 0;
+  }
+}

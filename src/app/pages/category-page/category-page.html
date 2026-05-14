@@ -1,0 +1,62 @@
+<app-navbar></app-navbar>
+
+<main class="page-shell">
+  <div class="content-container archive-page">
+    <div *ngIf="isLoading" class="empty-state">
+      <div class="spinner"></div>
+    </div>
+
+    <ng-container *ngIf="!isLoading && category">
+      <header class="archive-header">
+        <span class="section-eyebrow">Category</span>
+        <h1 class="font-serif">{{ category.name }}</h1>
+        <p>{{ category.description || 'Published writing collected under this editorial topic.' }}</p>
+      </header>
+
+      <div *ngIf="paginatedPosts.length > 0" class="archive-list">
+        <a class="article-card" *ngFor="let post of paginatedPosts" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
+          <div class="article-card-copy">
+            <div class="article-card-kicker">
+              <span>{{ category.name }}</span>
+              <span class="dot"></span>
+              <span>{{ post.publishedAt | date:'mediumDate' }}</span>
+            </div>
+            <h3 class="article-card-title">{{ post.title }}</h3>
+            <p class="article-card-excerpt">{{ post.excerpt }}</p>
+            <div class="article-card-meta">
+              <span>{{ post.readTimeMin || 1 }} min read</span>
+              <span class="dot"></span>
+              <span>{{ post.viewCount || 0 }} views</span>
+            </div>
+          </div>
+
+          <div class="article-card-media">
+            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" [alt]="post.title">
+            <div *ngIf="!post.featuredImageUrl" class="archive-placeholder"></div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" *ngIf="totalPages > 1" style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; margin-bottom: 2rem; align-items: center;">
+        <button (click)="prevPage()" [disabled]="currentPage === 1" style="padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer;">Previous</button>
+        <span>Page {{ currentPage }} of {{ totalPages }}</span>
+        <button (click)="nextPage()" [disabled]="currentPage === totalPages" style="padding: 0.5rem 1rem; border-radius: 4px; border: 1px solid #ccc; background: white; cursor: pointer;">Next</button>
+      </div>
+
+      <div *ngIf="posts.length === 0" class="empty-state">
+        <h2>No published stories in this category yet.</h2>
+        <p>The backend connection is active, but this section is currently empty.</p>
+        <a routerLink="/" class="btn-nav-primary">Return home</a>
+      </div>
+    </ng-container>
+
+    <div *ngIf="!isLoading && !category" class="empty-state">
+      <h2>This category could not be loaded.</h2>
+      <p>The category endpoint may be unavailable, or the slug does not exist.</p>
+      <a routerLink="/" class="btn-nav-primary">Return home</a>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>

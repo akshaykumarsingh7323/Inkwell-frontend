@@ -1,0 +1,121 @@
+<nav class="reader-nav">
+  <div class="reader-nav__inner">
+    <div class="reader-nav__left">
+      <button class="reader-nav__hamburger" (click)="toggleMenu()" type="button" aria-label="Toggle menu">
+        <span class="material-symbols-outlined">{{ menuOpen() ? 'close' : 'menu' }}</span>
+      </button>
+
+      <div class="reader-nav__links">
+        <a class="reader-nav__link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        <a class="reader-nav__link" routerLink="/explore" routerLinkActive="active">Discover</a>
+      </div>
+    </div>
+
+    <a class="reader-nav__brand" routerLink="/">INKWELL</a>
+
+    <div class="reader-nav__right">
+      <div class="nav-search-wrapper" style="position: relative; display: flex; align-items: center; margin-right: 1rem;">
+        <span class="material-symbols-outlined" style="position: absolute; left: 8px; color: #64748b; font-size: 1.2rem;">search</span>
+        <input type="text" [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" placeholder="Search..." style="padding: 0.5rem 0.5rem 0.5rem 2.2rem; border-radius: 20px; border: 1px solid #e2e8f0; background: #f8fafc; outline: none; width: 200px; font-size: 0.9rem;">
+      </div>
+
+      <ng-container *ngIf="(currentUser$ | async) as user; else guestNav">
+        <a class="reader-nav__icon" routerLink="/notifications" aria-label="Notifications" (click)="closeMenus()">
+          <span class="material-symbols-outlined">notifications</span>
+          <span class="reader-nav__badge" *ngIf="unreadCount() > 0">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+        </a>
+
+        <a
+          class="reader-nav__write"
+          [routerLink]="user.role === 'ADMIN' ? '/admin-dashboard' : user.role === 'AUTHOR' ? '/create-post' : '/become-author'"
+          (click)="closeMenus()"
+        >
+          <span class="material-symbols-outlined">edit_square</span>
+          Write
+        </a>
+
+        <div class="reader-nav__profile">
+          <button class="reader-nav__avatar-btn" type="button" (click)="toggleProfile()" aria-label="Open profile menu">
+            <div class="reader-nav__avatar">
+              <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" [alt]="user.username">
+              <span *ngIf="!user.avatarUrl">{{ user.username.charAt(0).toUpperCase() }}</span>
+            </div>
+          </button>
+
+          <div class="reader-nav__dropdown" [class.open]="profileOpen()">
+            <div class="reader-nav__dropdown-header">
+              <strong>{{ user.fullName || user.username }}</strong>
+              <span>{{ user.email }}</span>
+            </div>
+
+            <a class="reader-nav__dropdown-item" routerLink="/reader-settings" (click)="closeMenus()">Profile</a>
+            <a
+              *ngIf="user.role === 'AUTHOR' || user.role === 'ADMIN'"
+              class="reader-nav__dropdown-item"
+              [routerLink]="['/author', user.userId]"
+              (click)="closeMenus()"
+            >
+              Public profile
+            </a>
+            <a
+              *ngIf="user.role === 'AUTHOR' || user.role === 'ADMIN'"
+              class="reader-nav__dropdown-item"
+              [routerLink]="user.role === 'ADMIN' ? '/admin-dashboard' : '/author-dashboard'"
+              (click)="closeMenus()"
+            >
+              Dashboard
+            </a>
+            <a *ngIf="user.role === 'READER'" class="reader-nav__dropdown-item" routerLink="/become-author" (click)="closeMenus()">Become author</a>
+            <a class="reader-nav__dropdown-item" routerLink="/reader-settings" (click)="closeMenus()">Settings</a>
+            <button class="reader-nav__dropdown-item reader-nav__dropdown-item--button" type="button" (click)="logout(); closeMenus()">Sign out</button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #guestNav>
+        <a class="reader-nav__link reader-nav__link--cta" routerLink="/login">Sign in</a>
+        <a class="reader-nav__write" routerLink="/register">Join free</a>
+      </ng-template>
+    </div>
+  </div>
+</nav>
+
+<div class="reader-nav__mobile" [class.open]="menuOpen()">
+  <a class="reader-nav__mobile-link" routerLink="/" (click)="closeMenus()">Home</a>
+  <a class="reader-nav__mobile-link" routerLink="/explore" (click)="closeMenus()">Discover</a>
+
+  <ng-container *ngIf="(currentUser$ | async) as user; else guestMobileNav">
+    <a class="reader-nav__mobile-link" routerLink="/reader-settings" (click)="closeMenus()">Profile</a>
+    <a
+      *ngIf="user.role === 'AUTHOR' || user.role === 'ADMIN'"
+      class="reader-nav__mobile-link"
+      [routerLink]="['/author', user.userId]"
+      (click)="closeMenus()"
+    >
+      Public profile
+    </a>
+    <a class="reader-nav__mobile-link" routerLink="/notifications" (click)="closeMenus()">Notifications</a>
+    <a
+      class="reader-nav__mobile-link"
+      [routerLink]="user.role === 'ADMIN' ? '/admin-dashboard' : user.role === 'AUTHOR' ? '/create-post' : '/become-author'"
+      (click)="closeMenus()"
+    >
+      Write
+    </a>
+    <a
+      *ngIf="user.role === 'AUTHOR' || user.role === 'ADMIN'"
+      class="reader-nav__mobile-link"
+      [routerLink]="user.role === 'ADMIN' ? '/admin-dashboard' : '/author-dashboard'"
+      (click)="closeMenus()"
+    >
+      Dashboard
+    </a>
+    <a class="reader-nav__mobile-link" routerLink="/reader-settings" (click)="closeMenus()">Settings</a>
+    <button class="reader-nav__mobile-link reader-nav__mobile-link--button" type="button" (click)="logout(); closeMenus()">Sign out</button>
+  </ng-container>
+
+  <ng-template #guestMobileNav>
+    <a class="reader-nav__mobile-link" routerLink="/login" (click)="closeMenus()">Sign in</a>
+    <a class="reader-nav__mobile-link" routerLink="/register" (click)="closeMenus()">Join free</a>
+  </ng-template>
+</div>

@@ -1,0 +1,76 @@
+<main class="taxonomy-management-content">
+  <div class="page-header">
+    <div class="page-eyebrow">Taxonomy Governance</div>
+    <h1 class="page-title">Categories &amp; Tags</h1>
+  </div>
+
+
+
+  <div *ngIf="errorMessage" class="error-banner" style="margin-bottom: 24px;">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; margin-right: 12px;"><circle cx="8" cy="8" r="7"/><path d="M8 5v4M8 11h.01"/></svg>
+    {{ errorMessage }}
+  </div>
+
+  <div *ngIf="isLoading" class="spinner-overlay">
+    <div class="spinner"></div>
+    <p style="color: var(--text-muted); font-size: 12px; font-family: 'JetBrains Mono', monospace;">REORGANIZING KNOWLEDGE...</p>
+  </div>
+
+  <div class="split-grid" *ngIf="!isLoading">
+    <!-- Categories Column -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Categories</h2>
+        <span class="count-chip">{{ categoriesFlat.length }} Items</span>
+      </div>
+
+      <div class="form-block">
+        <input class="form-input" type="text" placeholder="Category Name" [(ngModel)]="categoryDraft.name" />
+        <textarea class="form-textarea" rows="2" placeholder="Description (Optional)" [(ngModel)]="categoryDraft.description"></textarea>
+        <select class="form-select" [(ngModel)]="categoryDraft.parentCategoryId">
+          <option [ngValue]="undefined">No Parent (Top Level)</option>
+          <option *ngFor="let cat of categoriesFlat" [ngValue]="cat.categoryId">{{ cat.name }}</option>
+        </select>
+        <button class="btn-submit" (click)="createCategory()">Create Category</button>
+      </div>
+
+      <div class="tax-list">
+        <ng-template #categoryTree let-nodes="nodes" let-level="level">
+          <div class="tree-node" *ngFor="let cat of nodes">
+            <div class="tax-item" [style.margin-left.px]="level * 24">
+              <div class="tax-info">
+                <span class="tax-name">{{ cat.name }}</span>
+                <span class="tax-desc">{{ cat.description || 'No description' }}</span>
+              </div>
+              <button class="tax-delete" (click)="deleteCategory(cat.categoryId)">✕</button>
+            </div>
+            <ng-container *ngIf="cat.children && cat.children.length > 0">
+              <ng-container *ngTemplateOutlet="categoryTree; context: { nodes: cat.children, level: level + 1 }"></ng-container>
+            </ng-container>
+          </div>
+        </ng-template>
+        <ng-container *ngTemplateOutlet="categoryTree; context: { nodes: categories, level: 0 }"></ng-container>
+      </div>
+    </div>
+
+    <!-- Tags Column -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title">Platform Tags</h2>
+        <span class="count-chip">{{ tags.length }} Active</span>
+      </div>
+
+      <div class="form-block">
+        <input class="form-input" type="text" placeholder="Tag Name (e.g. AI, WebDev)" [(ngModel)]="tagDraft.name" />
+        <button class="btn-submit" (click)="createTag()">Create Tag</button>
+      </div>
+
+      <div class="tag-cloud">
+        <div class="tag-pill" *ngFor="let tag of tags">
+          #{{ tag.name }}
+          <span class="tag-delete-sm" (click)="deleteTag(tag.tagId)">×</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

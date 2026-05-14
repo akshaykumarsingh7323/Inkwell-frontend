@@ -1,0 +1,225 @@
+<div class="admin-subscribers">
+  <!-- Page Header & Analytics -->
+  <div class="page-header">
+    <div class="header-main">
+      <h1 class="page-title">Newsletter Subscribers</h1>
+    </div>
+  </div>
+
+  <!-- Analytics Cards -->
+  <div class="analytics-grid" *ngIf="analytics() as stats">
+    <div class="stat-card total">
+      <div class="stat-icon"><span class="material-symbols-outlined">group</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Total Audience</span>
+        <div class="stat-value">{{ stats.totalSubscribers }}</div>
+      </div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-icon"><span class="material-symbols-outlined">check_circle</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Active Readers</span>
+        <div class="stat-value">{{ stats.activeSubscribers }}</div>
+      </div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-icon"><span class="material-symbols-outlined">pending</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Pending Confirmation</span>
+        <div class="stat-value">{{ stats.pendingSubscribers }}</div>
+      </div>
+    </div>
+    <div class="stat-card unsub">
+      <div class="stat-icon"><span class="material-symbols-outlined">cancel</span></div>
+      <div class="stat-content">
+        <span class="stat-label">Unsubscribed</span>
+        <div class="stat-value">{{ stats.unsubscribedCount }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters & Table Section -->
+  <div class="content-section">
+    <div class="table-actions">
+      <div class="search-box">
+        <span class="material-symbols-outlined">search</span>
+        <input type="text" placeholder="Search by name or email..." 
+               [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
+      </div>
+      
+      <div class="filters">
+        <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+          <option value="">All Statuses</option>
+          <option value="ACTIVE">Active</option>
+          <option value="PENDING">Pending</option>
+          <option value="UNSUBSCRIBED">Unsubscribed</option>
+        </select>
+
+        <select [(ngModel)]="preferenceFilter" (change)="onFilterChange()" class="filter-select">
+          <option value="">All Preferences</option>
+          <option value="TECH">Technology</option>
+          <option value="BUSINESS">Business</option>
+          <option value="DESIGN">Design</option>
+        </select>
+        
+        <button class="btn-refresh" (click)="loadSubscribers()" [class.spinning]="isLoading()">
+          <span class="material-symbols-outlined">refresh</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-state" *ngIf="errorMessage()">
+      <span class="material-symbols-outlined">error</span>
+      <p>{{ errorMessage() }}</p>
+      <button (click)="loadSubscribers()">Retry</button>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container" [class.loading]="isLoading()">
+      <table *ngIf="!errorMessage()">
+        <thead>
+          <tr>
+            <th>Subscriber</th>
+            <th>Status</th>
+            <th>Type</th>
+            <th>Subscribed Date</th>
+            <th>Preferences</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sub of subscribers()" (click)="viewDetails(sub)">
+            <td>
+              <div class="subscriber-info">
+                <div class="avatar-mini">{{ (sub.fullName || sub.email).charAt(0).toUpperCase() }}</div>
+                <div class="details">
+                  <span class="name">{{ sub.fullName || 'Guest' }}</span>
+                  <span class="email">{{ sub.email }}</span>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="status-badge" [ngClass]="getStatusClass(sub.status)">
+                {{ sub.status }}
+              </span>
+            </td>
+            <td>
+              <span class="type-badge" [class.guest]="!sub.userId">
+                {{ sub.userId ? 'Registered' : 'Guest' }}
+              </span>
+            </td>
+            <td>{{ formatDate(sub.subscribedAt) }}</td>
+            <td>
+              <div class="preference-tags">
+                <span class="tag" *ngFor="let tag of (sub.preferences || '').split(',')">
+                  {{ tag.trim() }}
+                </span>
+                <span *ngIf="!sub.preferences" class="no-tags">—</span>
+              </div>
+            </td>
+            <td class="text-right">
+              <button class="action-btn" (click)="$event.stopPropagation(); viewDetails(sub)">
+                <span class="material-symbols-outlined">visibility</span>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="subscribers().length === 0 && !isLoading()">
+            <td colspan="6" class="empty-cell">
+              <div class="empty-state">
+                <span class="material-symbols-outlined">group_off</span>
+                <p>No subscribers found matching your filters.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <!-- Skeleton Loader -->
+      <div class="skeleton-overlay" *ngIf="isLoading()">
+        <div class="skeleton-row" *ngFor="let i of [1,2,3,4,5]"></div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="totalElements() > pageSize()">
+      <button [disabled]="currentPage() === 0" (click)="changePage(currentPage() - 1)">
+        <span class="material-symbols-outlined">chevron_left</span>
+      </button>
+      
+      <div class="pages">
+        <button *ngFor="let page of getPages()" 
+                [class.active]="page === currentPage()"
+                (click)="changePage(page)">
+          {{ page + 1 }}
+        </button>
+      </div>
+
+      <button [disabled]="(currentPage() + 1) * pageSize() >= totalElements()" 
+              (click)="changePage(currentPage() + 1)">
+        <span class="material-symbols-outlined">chevron_right</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Details Modal -->
+<div class="modal-backdrop" *ngIf="selectedSubscriber()" (click)="closeDetails()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Subscriber Details</h2>
+      <button class="close-btn" (click)="closeDetails()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedSubscriber() as sub">
+      <div class="detail-grid">
+        <div class="detail-item">
+          <label>Email Address</label>
+          <div class="value">{{ sub.email }}</div>
+        </div>
+        <div class="detail-item">
+          <label>Full Name</label>
+          <div class="value">{{ sub.fullName || 'Not provided' }}</div>
+        </div>
+        <div class="detail-item">
+          <label>Subscription Status</label>
+          <div class="value">
+            <span class="status-badge" [ngClass]="getStatusClass(sub.status)">{{ sub.status }}</span>
+          </div>
+        </div>
+        <div class="detail-item">
+          <label>User Type</label>
+          <div class="value">{{ sub.userId ? 'Registered User (ID: ' + sub.userId + ')' : 'Guest Subscriber' }}</div>
+        </div>
+        <div class="detail-item">
+          <label>Subscribed On</label>
+          <div class="value">{{ formatDate(sub.subscribedAt) }}</div>
+        </div>
+        <div class="detail-item" *ngIf="sub.unsubscribedAt">
+          <label>Unsubscribed On</label>
+          <div class="value">{{ formatDate(sub.unsubscribedAt) }}</div>
+        </div>
+        <div class="detail-item">
+          <label>Topic Preferences</label>
+          <div class="value">
+            <div class="preference-tags">
+              <span class="tag" *ngFor="let tag of (sub.preferences || '').split(',')">{{ tag.trim() }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="detail-item full-width">
+          <label>Security Token (Confidential)</label>
+          <div class="value token-value"><code>{{ sub.token || 'Hidden' }}</code></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeDetails()">Done</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,65 @@
+<main class="management-content">
+  <div class="page-header">
+    <div class="page-eyebrow">Engagement Moderation</div>
+    <h1 class="page-title">Comments</h1>
+    <p class="page-subtitle">Review and moderate discussion on your published stories.</p>
+  </div>
+
+  <div class="moderation-summary">
+    <div class="summary-card">
+      <span>Total Tracked</span>
+      <strong>{{ comments.length }}</strong>
+    </div>
+    <div class="summary-card">
+      <span>Moderator</span>
+      <strong>{{ roleLabel }}</strong>
+    </div>
+  </div>
+
+  <div class="comments-list">
+    <div class="empty-state" *ngIf="isLoading">Loading comments...</div>
+    <div class="empty-state" *ngIf="!isLoading && comments.length === 0">No comments found for moderation.</div>
+
+    <article class="comment-row pending" *ngFor="let comment of comments">
+      <div class="author-cell">
+        <div class="author-avatar">{{ getInitial(comment.authorId) }}</div>
+        <div class="author-meta">
+          <p class="author-name">{{ getAuthorName(comment.authorId) }}</p>
+          <p class="comment-time">{{ comment.createdAt | date:'short' }}</p>
+        </div>
+      </div>
+      <div class="content-cell">
+        <p class="post-context">On: <a class="post-link" (click)="viewPost(comment.postId)" title="View Post">{{ getPostTitle(comment.postId) }}</a></p>
+        <p class="comment-text">{{ comment.content }}</p>
+      </div>
+      <div class="status-cell">
+        <span class="status-badge" [class]="comment.status.toLowerCase()">{{ comment.status }}</span>
+      </div>
+      <div class="actions-cell">
+        <button class="btn-approve" type="button" (click)="approveComment(comment.commentId)" *ngIf="comment.status === 'PENDING'">
+          <span class="material-symbols-outlined">check</span>
+          Approve
+        </button>
+        <button class="icon-btn delete" type="button" title="Delete Comment" (click)="confirmDelete(comment.commentId)">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="commentToDeleteId" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-icon">⚠️</div>
+      <h3 class="modal-title">Delete Comment?</h3>
+      <p class="modal-desc">This action cannot be undone. The comment and all its replies will be permanently removed.</p>
+      
+      <div class="modal-actions">
+        <button class="btn-ghost" (click)="cancelDelete()" [disabled]="isSubmitting">Cancel</button>
+        <button class="btn-danger" (click)="executeDelete()" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Deleting...' : 'Delete Permanently' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</main>

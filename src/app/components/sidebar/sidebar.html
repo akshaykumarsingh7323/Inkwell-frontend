@@ -1,0 +1,56 @@
+<aside class="dashboard-sidebar">
+  <div class="dashboard-sidebar__brand">
+    <a class="dashboard-sidebar__logo" routerLink="/">InkWell</a>
+
+    <ng-container *ngIf="(currentUser$ | async) as user">
+      <a class="dashboard-sidebar__user" [routerLink]="['/author', user.userId]">
+        <div class="dashboard-sidebar__avatar">{{ user.username.charAt(0).toUpperCase() }}</div>
+        <div>
+          <strong>{{ user.fullName || user.username }}</strong>
+          <span>{{ user.role || 'Writer' }}</span>
+        </div>
+      </a>
+    </ng-container>
+  </div>
+
+  <nav class="dashboard-sidebar__nav" *ngIf="(currentUser$ | async) as user">
+    <ng-container *ngIf="user.role === 'ADMIN'">
+      <div class="dashboard-sidebar__label">Content</div>
+      <a class="dashboard-sidebar__link" routerLink="/create-post" routerLinkActive="active">New Entry</a>
+      <a class="dashboard-sidebar__link" routerLink="/media-library" routerLinkActive="active">Media</a>
+    </ng-container>
+
+    <ng-container *ngIf="user.role === 'AUTHOR'">
+      <div class="dashboard-sidebar__label">Author Console</div>
+      <a class="dashboard-sidebar__link" routerLink="/author-dashboard" routerLinkActive="active">Overview</a>
+      <a class="dashboard-sidebar__link" routerLink="/create-post" routerLinkActive="active">New Entry</a>
+      <a class="dashboard-sidebar__link" routerLink="/my-posts" routerLinkActive="active">My Posts</a>
+      <a class="dashboard-sidebar__link" routerLink="/media-library" routerLinkActive="active">Media Library</a>
+      <a class="dashboard-sidebar__link" routerLink="/comment-moderation" routerLinkActive="active">Comments</a>
+      <a class="dashboard-sidebar__link" routerLink="#" routerLinkActive="active">Newsletter</a>
+      <a class="dashboard-sidebar__link" routerLink="#" routerLinkActive="active">Profile / Settings</a>
+    </ng-container>
+
+    <ng-container *ngIf="user.role === 'ADMIN'">
+      <div class="dashboard-sidebar__label">System Admin</div>
+      <a class="dashboard-sidebar__link" routerLink="/admin-dashboard" routerLinkActive="active">Dashboard Overview</a>
+      <a class="dashboard-sidebar__link" routerLink="/user-management" routerLinkActive="active">User Management</a>
+      <a class="dashboard-sidebar__link" routerLink="/content-moderation" routerLinkActive="active">Content Moderation</a>
+      <a class="dashboard-sidebar__link" routerLink="/comment-moderation" routerLinkActive="active">All Comments</a>
+      <a class="dashboard-sidebar__link" routerLink="/newsletter-management" routerLinkActive="active">Newsletter Panel</a>
+      <a class="dashboard-sidebar__link" routerLink="/audit-logs" routerLinkActive="active">Audit Logs</a>
+    </ng-container>
+
+    <ng-container *ngIf="trendingTags.length > 0">
+      <div class="dashboard-sidebar__label">Trending tags</div>
+      <div class="dashboard-sidebar__tags">
+        <a *ngFor="let tag of trendingTags" [routerLink]="['/tag', tag.slug]" class="topic-pill">#{{ tag.name }}</a>
+      </div>
+    </ng-container>
+  </nav>
+
+  <div class="dashboard-sidebar__footer">
+    <a class="dashboard-sidebar__link" routerLink="/">Public Feed</a>
+    <button class="dashboard-sidebar__link dashboard-sidebar__button" type="button" (click)="logout()">Sign Out</button>
+  </div>
+</aside>

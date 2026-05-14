@@ -1,0 +1,120 @@
+<main class="management-content">
+  <div class="posts-container">
+    <div class="header-toolbar">
+      <div class="header-left">
+        <h1 class="page-title">My Posts</h1>
+        <div class="filter-chips">
+          <button class="chip" [class.active]="activeFilter === 'ALL'" (click)="applyFilter('ALL')">All Posts</button>
+          <button class="chip" [class.active]="activeFilter === 'PUBLISHED'" (click)="applyFilter('PUBLISHED')">Published</button>
+          <button class="chip" [class.active]="activeFilter === 'UNPUBLISHED'" (click)="applyFilter('UNPUBLISHED')">Unpublished</button>
+          <button class="chip" [class.active]="activeFilter === 'DRAFT'" (click)="applyFilter('DRAFT')">Drafts</button>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="posts-stats">
+          <span class="count-badge">{{ filteredPosts.length }} POSTS</span>
+          <button class="btn-create" routerLink="/create-post">
+            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            New Post
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="isLoading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your posts...</p>
+    </div>
+
+    <div *ngIf="!isLoading && filteredPosts.length === 0" class="empty-message-simple">
+      <span class="material-symbols-outlined">description</span>
+      <p>No post available</p>
+    </div>
+
+    <div *ngIf="!isLoading && filteredPosts.length > 0" class="panel table-panel">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Post Details</th>
+              <th>Status</th>
+              <th>Engagement</th>
+              <th>Last Modified</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let post of filteredPosts">
+              <td>
+                <div class="story-info">
+                  <div class="story-thumb">
+                    <img [src]="post.featuredImageUrl || 'assets/default-post.jpg'" onerror="this.src='https://images.unsplash.com/photo-1455390582262-044cdead277a?w=100&q=80'">
+                  </div>
+                  <div class="story-text">
+                    <a [routerLink]="['/post', post.slug]" class="story-title">{{ post.title || '(Untitled Draft)' }}</a>
+                    <span class="story-category">{{ getCategoryName(post.categoryId) }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="status-pill" [class]="post.status.toLowerCase()">
+                  <span class="status-dot"></span>
+                  {{ post.status }}
+                </span>
+              </td>
+              <td>
+                <div class="engagement-stats">
+                  <span title="Views"><span class="material-symbols-outlined">visibility</span> {{ post.viewCount || 0 }}</span>
+                  <span title="Likes"><span class="material-symbols-outlined">favorite</span> {{ post.likesCount || 0 }}</span>
+                  <span title="Comments"><span class="material-symbols-outlined">chat_bubble</span> {{ post.commentsCount || 0 }}</span>
+                </div>
+              </td>
+              <td>
+                <div class="date-text">{{ (post.updatedAt || post.createdAt) | date:'mediumDate' }}</div>
+              </td>
+              <td>
+                <div class="action-group">
+                  <button class="action-btn" [routerLink]="['/edit-post', post.postId]" title="Edit">
+                    <span class="material-symbols-outlined">edit</span>
+                  </button>
+                  <button class="action-btn" (click)="togglePublish(post)" [title]="post.status === 'PUBLISHED' ? 'Unpublish' : 'Publish'">
+                    <span class="material-symbols-outlined">{{ post.status === 'PUBLISHED' ? 'unpublished' : 'publish' }}</span>
+                  </button>
+                  <button class="action-btn delete" (click)="deletePost(post)" title="Delete">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showPublishModal" (click)="cancelPublish()">
+    <div class="confirm-modal" (click)="$event.stopPropagation()">
+      <div class="modal-icon">🚀</div>
+      <h2>Publish Post?</h2>
+      <p>Are you sure you want to publish <strong>"{{ postToPublish?.title }}"</strong>? It will be visible to all readers immediately.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" type="button" (click)="cancelPublish()">Cancel</button>
+        <button class="btn-confirm" type="button" (click)="confirmPublish()">Yes, Publish Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal" (click)="cancelDelete()">
+    <div class="confirm-modal delete-theme" (click)="$event.stopPropagation()">
+      <div class="modal-icon">🗑️</div>
+      <h2>Delete Post?</h2>
+      <p>Are you sure you want to delete <strong>"{{ postToDelete?.title }}"</strong>? This action cannot be undone and all content will be lost forever.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" type="button" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-confirm delete-btn" type="button" (click)="confirmDelete()">Yes, Delete Forever</button>
+      </div>
+    </div>
+  </div>
+</main>

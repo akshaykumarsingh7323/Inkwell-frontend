@@ -1,0 +1,98 @@
+<main class="newsletter-content">
+  <div class="page-header">
+    <div class="page-eyebrow">Outreach & Communications</div>
+    <h1 class="page-title">Newsletter Management</h1>
+    <p class="page-subtitle">Broadcasting platform updates to your audience.</p>
+  </div>
+
+  <div *ngIf="statusMessage" class="status-msg">
+    <span>✨</span> {{ statusMessage }}
+  </div>
+
+  <div *ngIf="errorMessage" class="error-banner" style="margin-bottom: 24px;">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:18px; margin-right: 12px;"><circle cx="8" cy="8" r="7"/><path d="M8 5v4M8 11h.01"/></svg>
+    {{ errorMessage }}
+  </div>
+
+  <div class="newsletter-grid">
+    <section class="compose-section">
+      <div class="section-card">
+        <h3 class="card-title">Compose Campaign</h3>
+        <div class="form-group">
+          <label for="subject">Subject Line</label>
+          <input type="text" id="subject" class="form-input" placeholder="Enter subject..." [(ngModel)]="newsletter.subject">
+        </div>
+        <div class="form-group">
+          <label for="content">Campaign Content</label>
+          <div class="editor-toolbar">
+            <button class="toolbar-btn" type="button" (click)="toggleBold()" [class.active]="editor?.isActive('bold')"><span class="material-symbols-outlined">format_bold</span></button>
+            <button class="toolbar-btn" type="button" (click)="toggleItalic()" [class.active]="editor?.isActive('italic')"><span class="material-symbols-outlined">format_italic</span></button>
+            <button class="toolbar-btn" type="button" (click)="toggleUnderline()" [class.active]="editor?.isActive('underline')"><span class="material-symbols-outlined">format_underlined</span></button>
+            <button class="toolbar-btn" type="button" (click)="insertLink()" [class.active]="editor?.isActive('link')"><span class="material-symbols-outlined">link</span></button>
+          </div>
+          <div class="editor-body">
+            <div #editorContainer class="tiptap-editor"></div>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="status">Target Audience</label>
+            <select id="status" class="form-select" [(ngModel)]="campaignFilters.status">
+              <option value="ACTIVE">Active subscribers</option>
+              <option value="PENDING">Pending subscribers</option>
+              <option value="UNSUBSCRIBED">Unsubscribed users</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="tags">Preference Tags</label>
+            <input id="tags" type="text" class="form-input" placeholder="e.g. tech, design" [(ngModel)]="campaignFilters.tags">
+          </div>
+        </div>
+        <div class="compose-footer">
+          <p class="audience-hint">Targeting <strong>{{ activeSubscribers }}</strong> active subscribers by default</p>
+          <button class="btn-primary" (click)="sendNewsletter()" [disabled]="isSending">
+            {{ isSending ? 'Dispatching...' : 'Send Campaign Now' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="subscribers-aside">
+      <div class="section-card stat-card">
+        <h3 class="card-title">Audience Stats</h3>
+        <div class="stats-grid">
+          <div class="stat-item">
+            <span class="stat-num">{{ analytics?.totalSubscribers || 0 }}</span>
+            <span class="stat-label">Total</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num text-success">{{ analytics?.activeSubscribers || 0 }}</span>
+            <span class="stat-label">Active</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num text-warning">{{ analytics?.pendingSubscribers || 0 }}</span>
+            <span class="stat-label">Pending</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card" style="margin-top: 24px;">
+        <h3 class="card-title">Recent Activity</h3>
+        <div class="subscriber-list">
+          <div *ngIf="isLoading" class="list-loading">Synchronizing...</div>
+          <div *ngIf="!isLoading && subscribers.length === 0" class="list-empty">No active subscribers.</div>
+
+          <div class="subscriber-item" *ngFor="let s of subscribers.slice(0, 10)">
+            <div class="sub-info">
+              <p class="sub-email">{{ s.email }}</p>
+              <p class="sub-date">{{ s.subscribedAt | date:'shortDate' }}</p>
+            </div>
+            <span class="status-pill" [class.active]="isSubscriberActive(s)">
+              {{ isSubscriberActive(s) ? 'Active' : (s.status || 'Pending') }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</main>

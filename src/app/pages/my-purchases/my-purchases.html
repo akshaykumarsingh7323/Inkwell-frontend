@@ -1,0 +1,33 @@
+<app-navbar></app-navbar>
+
+<main class="purchases-container">
+  <header class="page-header">
+    <h1>My Purchases</h1>
+    <p>History of all the premium content you've unlocked.</p>
+  </header>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && purchases.length === 0">
+    <span class="material-symbols-outlined">payments</span>
+    <h3>No purchases yet</h3>
+    <p>Any premium posts you purchase will appear here.</p>
+  </div>
+
+  <div class="purchases-grid" *ngIf="!isLoading && purchases.length > 0">
+    <div class="purchase-card" *ngFor="let purchase of purchases">
+      <div class="purchase-info">
+        <h3>Post ID: {{ purchase.postId }}</h3>
+        <p class="purchase-date">{{ purchase.createdAt | date:'medium' }}</p>
+      </div>
+      <div class="purchase-details">
+        <span class="amount">₹{{ purchase.amount }}</span>
+        <span class="status" [class]="purchase.status.toLowerCase()">{{ purchase.status }}</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<app-footer></app-footer>
