@@ -70,4 +70,4 @@ jobs:
             
             # Rebuild and restart containers (Assuming frontend is integrated in the backend docker-compose)
             cd ../Inkwell-backend
-            docker compose up -d --build
+            sudo docker compose up -d --build
