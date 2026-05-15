@@ -5,6 +5,7 @@
 /tmp
 /out-tsc
 /bazel-out
+.coverage-aggregate/
 
 # Node
 /node_modules
@@ -42,3 +43,4 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+*.bat
