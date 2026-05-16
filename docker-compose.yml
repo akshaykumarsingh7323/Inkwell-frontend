@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  inkwell-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: inkwell-frontend
+    ports:
+      - "80:80"
+    restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
