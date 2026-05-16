@@ -68,6 +68,13 @@ jobs:
             git checkout main
             git pull https://x-access-token:${{ secrets.GH_PAT }}@github.com/akshaykumarsingh7323/Inkwell-frontend.git main
             
-            # Rebuild and restart containers (Assuming frontend is integrated in the backend docker-compose)
-            cd ../Inkwell-backend
+            # Rebuild and restart Frontend container
+            cd ~/inkwell-app/inkwell-frontend
             sudo docker compose up -d --build
+            
+            # Optional: Ensure backend is also up
+            if [ -d "../Inkwell-backend" ]; then
+              cd ../Inkwell-backend
+              sudo docker compose up -d
+            fi
+
