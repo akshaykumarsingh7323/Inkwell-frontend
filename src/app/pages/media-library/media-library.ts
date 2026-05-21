@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { MediaService, MediaResponse } from '../../services/media.service';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
@@ -8,7 +9,7 @@ import { ConfirmationService } from '../../services/confirmation.service';
 @Component({
   selector: 'app-media-library',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, MediaUrlPipe],
   templateUrl: './media-library.html',
   styleUrl: './media-library.css',
 })
@@ -97,7 +98,7 @@ export class MediaLibrary implements OnInit {
   }
 
   copyUrl(url: string): void {
-    navigator.clipboard.writeText(url).catch(() => undefined);
+    navigator.clipboard.writeText(this.mediaService.resolveMediaUrl(url)).catch(() => undefined);
   }
 
   formatKb(sizeKb: number): string {

@@ -18,6 +18,12 @@
 
     <!-- Right Side: Form -->
     <div class="right-panel">
+      <!-- Mobile Logo -->
+      <div class="mobile-logo auth-logo" routerLink="/">
+        <span class="material-symbols-outlined logo-icon">history_edu</span>
+        <span class="logo-text">InkWell</span>
+      </div>
+
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">
         
         <!-- Email Not Registered Dialog -->

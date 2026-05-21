@@ -8,34 +8,34 @@
 
   <!-- Analytics Cards -->
   <div class="analytics-grid" *ngIf="analytics() as stats">
-    <div class="stat-card total">
+    <button type="button" class="stat-card total" [class.selected]="isTotalCardActive()" (click)="applyStatusFilter('')">
       <div class="stat-icon"><span class="material-symbols-outlined">group</span></div>
       <div class="stat-content">
-        <span class="stat-label">Total Audience</span>
+        <span class="stat-label">Total Subscribers</span>
         <div class="stat-value">{{ stats.totalSubscribers }}</div>
       </div>
-    </div>
-    <div class="stat-card active">
+    </button>
+    <button type="button" class="stat-card active" [class.selected]="isStatusCardActive('ACTIVE')" (click)="applyStatusFilter('ACTIVE')">
       <div class="stat-icon"><span class="material-symbols-outlined">check_circle</span></div>
       <div class="stat-content">
-        <span class="stat-label">Active Readers</span>
+        <span class="stat-label">Active Subscribers</span>
         <div class="stat-value">{{ stats.activeSubscribers }}</div>
       </div>
-    </div>
-    <div class="stat-card pending">
+    </button>
+    <button type="button" class="stat-card pending" [class.selected]="isStatusCardActive('PENDING')" (click)="applyStatusFilter('PENDING')">
       <div class="stat-icon"><span class="material-symbols-outlined">pending</span></div>
       <div class="stat-content">
         <span class="stat-label">Pending Confirmation</span>
         <div class="stat-value">{{ stats.pendingSubscribers }}</div>
       </div>
-    </div>
-    <div class="stat-card unsub">
+    </button>
+    <button type="button" class="stat-card unsub" [class.selected]="isStatusCardActive('UNSUBSCRIBED')" (click)="applyStatusFilter('UNSUBSCRIBED')">
       <div class="stat-icon"><span class="material-symbols-outlined">cancel</span></div>
       <div class="stat-content">
         <span class="stat-label">Unsubscribed</span>
         <div class="stat-value">{{ stats.unsubscribedCount }}</div>
       </div>
-    </div>
+    </button>
   </div>
 
   <!-- Filters & Table Section -->
@@ -44,25 +44,25 @@
       <div class="search-box">
         <span class="material-symbols-outlined">search</span>
         <input type="text" placeholder="Search by name or email..." 
-               [(ngModel)]="searchQuery" (keyup.enter)="onSearch()">
+               [ngModel]="searchInput" (ngModelChange)="onSearchInput($event)">
       </div>
       
       <div class="filters">
-        <select [(ngModel)]="statusFilter" (change)="onFilterChange()" class="filter-select">
+        <select [(ngModel)]="statusFilterValue" (change)="onFilterChange()" class="filter-select">
           <option value="">All Statuses</option>
           <option value="ACTIVE">Active</option>
           <option value="PENDING">Pending</option>
           <option value="UNSUBSCRIBED">Unsubscribed</option>
         </select>
 
-        <select [(ngModel)]="preferenceFilter" (change)="onFilterChange()" class="filter-select">
+        <select [(ngModel)]="preferenceFilterValue" (change)="onFilterChange()" class="filter-select">
           <option value="">All Preferences</option>
           <option value="TECH">Technology</option>
           <option value="BUSINESS">Business</option>
           <option value="DESIGN">Design</option>
         </select>
         
-        <button class="btn-refresh" (click)="loadSubscribers()" [class.spinning]="isLoading()">
+        <button class="btn-refresh" (click)="resetFilters()" [class.spinning]="isLoading()">
           <span class="material-symbols-outlined">refresh</span>
         </button>
       </div>
@@ -129,8 +129,7 @@
           <tr *ngIf="subscribers().length === 0 && !isLoading()">
             <td colspan="6" class="empty-cell">
               <div class="empty-state">
-                <span class="material-symbols-outlined">group_off</span>
-                <p>No subscribers found matching your filters.</p>
+                <p>No subscriber found</p>
               </div>
             </td>
           </tr>
@@ -210,10 +209,6 @@
               <span class="tag" *ngFor="let tag of (sub.preferences || '').split(',')">{{ tag.trim() }}</span>
             </div>
           </div>
-        </div>
-        <div class="detail-item full-width">
-          <label>Security Token (Confidential)</label>
-          <div class="value token-value"><code>{{ sub.token || 'Hidden' }}</code></div>
         </div>
       </div>
     </div>

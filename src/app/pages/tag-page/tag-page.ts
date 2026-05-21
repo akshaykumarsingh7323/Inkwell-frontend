@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
@@ -9,7 +10,7 @@ import { PostService, PostResponse } from '../../services/post.service';
 @Component({
   selector: 'app-tag-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, Navbar, Footer],
+  imports: [CommonModule, RouterLink, Navbar, Footer, MediaUrlPipe],
   templateUrl: './tag-page.html',
   styleUrl: './tag-page.css',
 })

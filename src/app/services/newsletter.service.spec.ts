@@ -40,20 +40,20 @@ describe('NewsletterService', () => {
 
   it('should get subscriber count', async () => {
     httpClientSpy.get.mockReturnValue(of(100));
-    const res = await firstValueFrom(service.getSubscriberCount(1));
+    const res = await firstValueFrom(service.getSubscriberCount());
     expect(res).toBe(100);
     expect(httpClientSpy.get).toHaveBeenCalledWith(expect.stringContaining('/newsletter/count'), expect.any(Object));
   });
 
   it('should get subscription status', async () => {
     httpClientSpy.get.mockReturnValue(of({ status: 'ACTIVE' }));
-    const res = await firstValueFrom(service.getSubscriptionStatus('test@example.com', 1));
+    const res = await firstValueFrom(service.getSubscriptionStatus());
     expect(res).toBe('ACTIVE');
   });
 
   it('should handle missing subscriber status as NONE', async () => {
     httpClientSpy.get.mockReturnValue(of({ status: 'NONE' }));
-    const res = await firstValueFrom(service.getSubscriptionStatus('none@example.com', 1));
+    const res = await firstValueFrom(service.getSubscriptionStatus());
     expect(res).toBe('NONE');
   });
 });

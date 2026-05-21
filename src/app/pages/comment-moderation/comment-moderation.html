@@ -1,8 +1,6 @@
 <main class="management-content">
   <div class="page-header">
-    <div class="page-eyebrow">Engagement Moderation</div>
     <h1 class="page-title">Comments</h1>
-    <p class="page-subtitle">Review and moderate discussion on your published stories.</p>
   </div>
 
   <div class="moderation-summary">
@@ -22,9 +20,9 @@
 
     <article class="comment-row pending" *ngFor="let comment of comments">
       <div class="author-cell">
-        <div class="author-avatar">{{ getInitial(comment.authorId) }}</div>
+        <div class="author-avatar" [routerLink]="['/author', comment.authorId]">{{ getInitial(comment.authorId) }}</div>
         <div class="author-meta">
-          <p class="author-name">{{ getAuthorName(comment.authorId) }}</p>
+          <a class="author-name" [routerLink]="['/author', comment.authorId]">{{ getAuthorName(comment.authorId) }}</a>
           <p class="comment-time">{{ comment.createdAt | date:'short' }}</p>
         </div>
       </div>

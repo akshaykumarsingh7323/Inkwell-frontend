@@ -8,7 +8,7 @@
     <span>{{ statusMessage }}</span>
   </div>
 
-  <div class="editor-feedback editor-feedback--error" *ngIf="errorMessage">
+  <div class="editor-feedback editor-feedback--error" *ngIf="errorMessage && !errorMessage.toLowerCase().includes('title') && !errorMessage.toLowerCase().includes('content')">
     <span class="material-symbols-outlined">error</span>
     <span>{{ errorMessage }}</span>
   </div>
@@ -26,13 +26,16 @@
             <span class="auto-save-text" *ngIf="isSaving">Saving...</span>
             <div class="status-pill">
               <span class="status-pill__dot" [class.saving]="isSaving || isUploading"></span>
-              <span>{{ (isSaving || isUploading) ? 'Syncing' : (lastSaved ? 'Saved' : 'Draft') }}</span>
+              <span>{{ (isSaving || isUploading) ? 'Syncing' : ((isDirty() || !lastSaved) ? 'Draft' : 'Saved') }}</span>
             </div>
           </div>
         </div>
 
-        <label class="studio-field">
-          <span>Post title</span>
+        <label class="studio-field" style="position: relative;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <span style="margin-bottom: 0;">Post title</span>
+            <span *ngIf="errorMessage.includes('Post title')" class="editor-inline-error" style="margin: 0; color: #b91c1c; font-size: 13px; font-weight: 600;">{{ errorMessage }}</span>
+          </div>
           <input type="text" class="studio-input studio-input--title" placeholder="Post title" [(ngModel)]="postTitle" (input)="autoResizeTitle($event)" />
         </label>
 
@@ -101,6 +104,11 @@
 
         <p class="editor-inline-error" *ngIf="tagError">{{ tagError }}</p>
 
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; margin-top: 1.5rem;">
+          <span style="font-weight: 700; color: var(--primary); font-size: 14px;">Story content</span>
+          <span *ngIf="errorMessage.toLowerCase().includes('content')" class="editor-inline-error" style="margin: 0; color: #b91c1c; font-size: 13px; font-weight: 600;">{{ errorMessage }}</span>
+        </div>
+
         <div class="editor-toolbar">
           <button class="toolbar-btn" type="button" (click)="toggleBold()" [class.active]="editor?.isActive('bold')" title="Bold"><span class="material-symbols-outlined">format_bold</span></button>
           <button class="toolbar-btn" type="button" (click)="toggleItalic()" [class.active]="editor?.isActive('italic')" title="Italic"><span class="material-symbols-outlined">format_italic</span></button>
@@ -130,11 +138,37 @@
         </div>
 
         <div class="featured-preview" (click)="triggerFeaturedImageUpload()">
-          <img *ngIf="featuredImageUrl" [src]="featuredImageUrl" alt="Featured image preview" />
-          <div class="featured-preview__empty" *ngIf="!featuredImageUrl">
+
+          <!-- Loading spinner: shown while uploading or while browser fetches the image -->
+          <div class="featured-preview__empty" *ngIf="isUploading || imageLoading">
+            <span class="material-symbols-outlined" style="animation: spin 1s linear infinite;">refresh</span>
+            <span>{{ isUploading ? 'Uploading...' : 'Loading preview...' }}</span>
+          </div>
+
+          <!-- The preview image (hidden via CSS while loading) -->
+          <img
+            *ngIf="featuredImageUrl && !isUploading"
+            [src]="featuredImagePreviewUrl"
+            alt="Featured image preview"
+            [style.display]="imageLoading || imageLoadFailed ? 'none' : 'block'"
+            (error)="onImageError()"
+            (load)="onImageLoad()"
+          />
+
+          <!-- Fallback: no image set yet -->
+          <div class="featured-preview__empty" *ngIf="!featuredImageUrl && !isUploading && !imageLoading">
             <span class="material-symbols-outlined">add_photo_alternate</span>
             <span>Add featured image</span>
           </div>
+
+          <!-- Fallback: image URL set but browser cannot load it (e.g. S3 403) -->
+          <div class="featured-preview__empty" *ngIf="featuredImageUrl && imageLoadFailed && !isUploading && !imageLoading">
+            <span class="material-symbols-outlined" style="color: #b91c1c;">broken_image</span>
+            <span style="color: #b91c1c; font-size: 12px; text-align: center;">
+              Image URL unreachable – click to re-upload
+            </span>
+          </div>
+
           <input #fileInput type="file" accept="image/*" hidden (change)="onImageSelected($event)">
         </div>
 

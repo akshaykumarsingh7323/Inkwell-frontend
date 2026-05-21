@@ -31,7 +31,7 @@
           </div>
 
           <div class="article-card-media">
-            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" [alt]="post.title">
+            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl | mediaUrl" [alt]="post.title">
             <div *ngIf="!post.featuredImageUrl" class="archive-placeholder"></div>
           </div>
         </a>

@@ -1,12 +1,12 @@
 import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { PostService, PostResponse, PageResponse } from '../../services/post.service';
 import { CategoryService, CategoryResponse } from '../../services/category.service';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../../services/auth.service';
-import { NewsletterService } from '../../services/newsletter.service';
 import { ToastService } from '../../services/toast.service';
 import { PaymentService } from '../../services/payment.service';
 import { Subject, Subscription, debounceTime, distinctUntilChanged, of } from 'rxjs';
@@ -15,7 +15,7 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, MediaUrlPipe],
   templateUrl: './search.html',
   styleUrl: './search.css',
 })
@@ -25,7 +25,6 @@ export class Search implements OnInit, OnDestroy {
   private postService = inject(PostService);
   private categoryService = inject(CategoryService);
   private authService = inject(AuthService);
-  private newsletterService = inject(NewsletterService);
   private toastService = inject(ToastService);
   private paymentService = inject(PaymentService);
 
@@ -45,8 +44,14 @@ export class Search implements OnInit, OnDestroy {
   errorMessage = '';
   hasSearched = false;
 
+  currentUser$ = this.authService.currentUser$;
+
   get isDiscoveryMode(): boolean {
-    return !this.query && this.selectedSort === 'latest' && this.selectedCategory === 'All';
+    return !this.query;
+  }
+
+  isAdmin(user: any): boolean {
+    return user?.role === 'ADMIN';
   }
 
   private searchSubject = new Subject<string>();
@@ -137,23 +142,13 @@ export class Search implements OnInit, OnDestroy {
 
     this.authService.getPublicAuthors().subscribe({
       next: (authors) => {
-        const currentUser = this.authService.getCurrentUserSnapshot();
         this.topAuthors = authors.map(author => {
-          const authorObj = {
+          return {
             id: author.userId,
             name: author.fullName || author.username,
             bio: author.bio || 'Sharing thoughts and stories on Inkwell.',
-            avatar: author.avatarUrl || 'https://via.placeholder.com/150',
-            isFollowing: false,
-            isFollowLoading: false
+            avatar: author.avatarUrl || 'https://via.placeholder.com/150'
           };
-          
-          if (currentUser) {
-            this.newsletterService.checkSubscriptionStatus(currentUser.email, Number(author.userId))
-              .pipe(catchError(() => of(false)))
-              .subscribe(status => authorObj.isFollowing = status);
-          }
-          return authorObj;
         });
       },
       error: (err) => console.error('Failed to load authors:', err)
@@ -313,51 +308,4 @@ export class Search implements OnInit, OnDestroy {
     });
   }
 
-  toggleFollow(author: any) {
-    const currentUser = this.authService.getCurrentUserSnapshot();
-    if (!currentUser) {
-      this.toastService.warning('Please login to follow authors.');
-      this.authService.redirectToLogin();
-      return;
-    }
-
-    author.isFollowLoading = true;
-    const previousState = author.isFollowing;
-    
-    // Optimistic Update
-    author.isFollowing = !previousState;
-
-    if (previousState) {
-      this.newsletterService.unsubscribeByEmail(currentUser.email, Number(author.id)).subscribe({
-        next: () => {
-          author.isFollowLoading = false;
-          this.toastService.success(`You unfollowed ${author.name}`);
-        },
-        error: (err) => {
-          console.error('Unfollow failed', err);
-          author.isFollowing = previousState; // Revert
-          author.isFollowLoading = false;
-          this.toastService.error('Failed to unfollow. Please try again.');
-        }
-      });
-    } else {
-      this.newsletterService.subscribe({
-        email: currentUser.email,
-        fullName: currentUser.fullName,
-        userId: Number(currentUser.userId),
-        followedAuthorId: Number(author.id)
-      }).subscribe({
-        next: () => {
-          author.isFollowLoading = false;
-          this.toastService.success(`You are now following ${author.name}`);
-        },
-        error: (err) => {
-          console.error('Follow failed', err);
-          author.isFollowing = previousState; // Revert
-          author.isFollowLoading = false;
-          this.toastService.error('Failed to follow author. Please try again.');
-        }
-      });
-    }
-  }
 }

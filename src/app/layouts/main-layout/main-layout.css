@@ -3,6 +3,7 @@
   min-height: 100vh;
   background-color: var(--background);
   display: flex;
+  position: relative;
 }
 
 /* Sidebar (Left Navigation) */
@@ -124,7 +125,7 @@ nav {
 }
 
 .ns {
-  margin-bottom: 24px;
+  margin-bottom: 10px;
 }
 
 .ns-lbl {
@@ -176,6 +177,8 @@ nav {
   padding: 0 32px 64px;
   max-width: 1400px;
   margin: 0 auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .topbar {
@@ -260,9 +263,140 @@ nav {
   color: rgba(255, 255, 255, 0.4);
 }
 
+.mobile-sidebar-backdrop,
+.mobile-menu-btn {
+  display: none;
+}
+
+.mobile-menu-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 12px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.mobile-menu-btn span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--primary);
+  display: block;
+}
+
 @media (max-width: 1024px) {
-  .sidebar { display: none; }
-  .main { padding: 40px 24px; }
+  .mobile-sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.38);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 25;
+  }
+
+  .mobile-sidebar-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 30;
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .main {
+    max-width: none;
+    padding: 24px 20px 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .main {
+    padding: 16px 14px 28px;
+  }
+
+  .topbar {
+    height: 64px;
+    min-height: 64px;
+    padding: 0;
+    margin-bottom: 16px;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+  }
+
+  .tnav {
+    gap: 14px;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  .trgt {
+    width: auto;
+    justify-content: flex-end;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .main {
+    padding: 12px 10px 22px;
+  }
+
+  .mobile-menu-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  .tnav {
+    gap: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tnav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tl {
+    font-size: 12px;
+  }
+
+  .av {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .trgt {
+    gap: 10px;
+  }
 }
 
 .ni-signin {

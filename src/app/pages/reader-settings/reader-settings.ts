@@ -71,13 +71,15 @@ export class ReaderSettings implements OnInit {
 
   checkNewsletterStatus(): void {
     if (!this.user?.email) return;
-    // We check status from authorId 0 or null as global newsletter
-    this.newsletterService.getAllSubscribers().subscribe(subs => {
-      const mySub = subs.find(s => s.email === this.user?.email);
+    this.newsletterService.getCurrentUserSubscription().subscribe(mySub => {
       if (mySub) {
         this.isSubscribed = mySub.status === 'ACTIVE';
         this.preferences = mySub.preferences || '';
         this.subscriberId = mySub.subscriberId;
+      } else {
+        this.isSubscribed = false;
+        this.preferences = '';
+        this.subscriberId = null;
       }
     });
   }
@@ -177,11 +179,11 @@ export class ReaderSettings implements OnInit {
     this.newsletterService.subscribe({ 
       email: this.user.email,
       fullName: this.user.fullName || undefined,
-      userId: this.user.userId
+      preferences: this.preferences || undefined
     }).subscribe({
       next: () => {
         this.isSavingNewsletter = false;
-        this.newsletterMessage = 'Subscription request sent! Please check your email.';
+        this.newsletterMessage = 'Subscription pending. Please check your email to confirm.';
         this.checkNewsletterStatus();
       },
       error: () => this.isSavingNewsletter = false
@@ -191,7 +193,7 @@ export class ReaderSettings implements OnInit {
   saveNewsletterPreferences(): void {
     if (!this.subscriberId) return;
     this.isSavingNewsletter = true;
-    this.newsletterService.updatePreferences(this.subscriberId, { preferences: this.preferences }).subscribe({
+    this.newsletterService.updatePreferences({ preferences: this.preferences }).subscribe({
       next: () => {
         this.isSavingNewsletter = false;
         this.newsletterMessage = 'Preferences saved.';
@@ -203,11 +205,12 @@ export class ReaderSettings implements OnInit {
   unsubscribe(): void {
     if (!this.user?.email) return;
     this.isSavingNewsletter = true;
-    // For global newsletter we use authorId null (handled as 0 in backend or similar)
-    this.newsletterService.unsubscribeByEmail(this.user.email, 0).subscribe({
+    this.newsletterService.unsubscribeCurrentUser().subscribe({
       next: () => {
         this.isSavingNewsletter = false;
         this.isSubscribed = false;
+        this.preferences = '';
+        this.subscriberId = null;
         this.newsletterMessage = 'Unsubscribed successfully.';
       },
       error: () => this.isSavingNewsletter = false

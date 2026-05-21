@@ -99,7 +99,7 @@ export class NewsletterUnsubscribe implements OnInit {
         this.message = 'You have been successfully removed from our mailing list. You will no longer receive notifications.';
       },
       error: (err) => {
-        this.setError('Request Failed', err.error || 'The token might be expired or invalid.');
+        this.setError('Request Failed', err.error?.error || 'The token might be expired or invalid.');
       }
     });
   }

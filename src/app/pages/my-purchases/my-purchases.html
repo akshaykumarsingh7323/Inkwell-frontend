@@ -1,9 +1,6 @@
-<app-navbar></app-navbar>
-
 <main class="purchases-container">
   <header class="page-header">
     <h1>My Purchases</h1>
-    <p>History of all the premium content you've unlocked.</p>
   </header>
 
   <div class="loading-state" *ngIf="isLoading">
@@ -17,17 +14,45 @@
   </div>
 
   <div class="purchases-grid" *ngIf="!isLoading && purchases.length > 0">
-    <div class="purchase-card" *ngFor="let purchase of purchases">
-      <div class="purchase-info">
-        <h3>Post ID: {{ purchase.postId }}</h3>
-        <p class="purchase-date">{{ purchase.createdAt | date:'medium' }}</p>
+    <div
+      class="post-card"
+      *ngFor="let purchase of purchases"
+      [class.is-clickable]="purchase.postSlug"
+      (click)="openPost(purchase)"
+    >
+      <div class="pc-image">
+        <img
+          [src]="(purchase.featuredImageUrl | mediaUrl) || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'"
+          [alt]="purchase.postTitle"
+        >
+        <span class="pc-cat-badge">{{ purchase.categoryName }}</span>
+        <div class="pc-img-status">
+          <div class="pc-purchased-overlay">
+            <span class="material-symbols-outlined">check_circle</span>
+            Purchased
+          </div>
+        </div>
       </div>
-      <div class="purchase-details">
-        <span class="amount">₹{{ purchase.amount }}</span>
-        <span class="status" [class]="purchase.status.toLowerCase()">{{ purchase.status }}</span>
+
+      <div class="pc-body">
+        <div class="pc-title">{{ purchase.postTitle }}</div>
+
+        <div class="purchase-meta">
+          <span class="amount">Rs {{ purchase.amount }}</span>
+          <span class="status" [class]="purchase.status.toLowerCase()">{{ purchase.status }}</span>
+          <span class="purchase-date">{{ purchase.createdAt | date:'medium' }}</span>
+        </div>
+
+        <div class="pc-foot">
+          <div class="pc-author">
+            <span class="au-name">By {{ purchase.authorName }}</span>
+          </div>
+          <div class="pc-stats">
+            <span class="pc-stat">Views {{ purchase.viewCount }}</span>
+            <span class="pc-stat">Likes {{ purchase.likesCount }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </main>
-
-<app-footer></app-footer>

@@ -210,7 +210,7 @@ export class CommentSectionComponent implements OnChanges {
 
   getAuthorLabel(comment: CommentResponse): string {
     const profile = this.authorProfiles[comment.authorId];
-    return profile?.fullName || profile?.username || `User #${comment.authorId}`;
+    return profile?.username || profile?.fullName || `User #${comment.authorId}`;
   }
 
   getAuthorLink(comment: CommentResponse): string[] {

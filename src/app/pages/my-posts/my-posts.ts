@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { RouterLink, Router, ActivatedRoute } from '@angular/router';
 import { PostService, PostResponse } from '../../services/post.service';
 import { AuthService } from '../../services/auth.service';
@@ -9,7 +10,7 @@ import { distinctUntilChanged, map } from 'rxjs/operators';
 @Component({
   selector: 'app-my-posts',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, MediaUrlPipe],
   templateUrl: './my-posts.html',
   styleUrl: './my-posts.css',
 })

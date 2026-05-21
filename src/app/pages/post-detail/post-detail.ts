@@ -8,6 +8,7 @@ import { NewsletterService } from '../../services/newsletter.service';
 import { CategoryService, CategoryResponse, TagResponse } from '../../services/category.service';
 import { PaymentService } from '../../services/payment.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
 import { PublicUserProfile } from '../../models/user.model';
@@ -45,6 +46,7 @@ export class PostDetail implements OnInit {
   private categoryService = inject(CategoryService);
   private paymentService = inject(PaymentService);
   private toastService = inject(ToastService);
+  private confirmationService = inject(ConfirmationService);
   private location = inject(Location);
 
   post: PostResponse | null = null;
@@ -130,6 +132,11 @@ export class PostDetail implements OnInit {
       next: (profile) => {
         this.authorProfile = profile;
       },
+      error: () => {
+        // Author profile not found (e.g. 404) – keep authorProfile null and
+        // let the template fall back to the post's embedded author name.
+        this.authorProfile = null;
+      },
     });
   }
 
@@ -177,6 +184,12 @@ export class PostDetail implements OnInit {
 
   subscribeNewsletter(): void {
     if (!this.newsletterEmail.trim()) return;
+
+    if (!this.authService.isLoggedIn()) {
+      this.authService.redirectToLogin(this.router.url);
+      return;
+    }
+
     this.newsletterService.subscribe({ email: this.newsletterEmail.trim() }).subscribe({
       next: () => {
         this.toastService.success('Subscription request sent. Please confirm by email.');
@@ -222,79 +235,93 @@ export class PostDetail implements OnInit {
         return;
       }
 
-      this.paymentService.createOrder(
-        user.userId, 
-        this.post!.postId.toString(), 
-        this.post!.price || 0
-      ).subscribe({
-        next: (orderId) => {
-          if (orderId.startsWith('order_mock_')) {
-            this.paymentService.verifyPayment({
-              orderId: orderId,
-              paymentId: 'pay_mock_' + Math.random().toString(36).substring(7),
-              signature: 'mock_signature'
-            }).subscribe({
-              next: (res) => {
-                if (res && res.status === 'SUCCESS') {
-                  this.toastService.success('Payment successful! Reloading...');
-                  setTimeout(() => window.location.reload(), 1500);
-                } else {
-                  this.toastService.error('Payment verification failed.');
-                }
-              },
-              error: () => this.toastService.error('Payment verification failed.')
-            });
-            return;
-          }
+      if (user.role === 'ADMIN' || user.userId === String(this.post!.authorId)) {
+        window.location.reload();
+        return;
+      }
 
-          if (typeof (window as any).Razorpay === 'undefined') {
-            this.toastService.error('Razorpay SDK failed to load. Please disable adblockers.');
-            return;
-          }
+      this.confirmationService.confirm({
+        title: 'Do you want to pay?',
+        message: `This premium post requires payment to unlock. Continue to pay ₹${this.post!.price || 0}?`,
+        confirmText: 'Yes, Pay Now',
+        cancelText: 'No',
+        type: 'warning'
+      }).then((confirmed) => {
+        if (!confirmed) return;
 
-          const options = {
-            key: environment.razorpayKeyId,
-            amount: (this.post!.price || 0) * 100,
-            currency: 'INR',
-            name: 'InkWell',
-            description: 'Unlock Premium Post',
-            order_id: orderId,
-            handler: (response: any) => {
+        this.paymentService.createOrder(
+          user.userId, 
+          this.post!.postId.toString(), 
+          this.post!.price || 0
+        ).subscribe({
+          next: (orderId) => {
+            if (orderId.startsWith('order_mock_')) {
               this.paymentService.verifyPayment({
                 orderId: orderId,
-                paymentId: response.razorpay_payment_id,
-                signature: response.razorpay_signature
+                paymentId: 'pay_mock_' + Math.random().toString(36).substring(7),
+                signature: 'mock_signature'
               }).subscribe({
-                next: (res: any) => {
+                next: (res) => {
                   if (res && res.status === 'SUCCESS') {
-                    // Wait 2 seconds to ensure all backend events and cache evictions are complete
-                    setTimeout(() => {
-                      window.location.reload();
-                    }, 2000);
+                    this.toastService.success('Payment successful! Reloading...');
+                    setTimeout(() => window.location.reload(), 1500);
                   } else {
                     this.toastService.error('Payment verification failed.');
                   }
                 },
-                error: (err) => {
-                  this.toastService.error('Payment verification failed. Please contact support.');
-                }
+                error: () => this.toastService.error('Payment verification failed.')
               });
-            },
-            prefill: {
-              name: user.fullName || user.username,
-              email: user.email
-            },
-            theme: {
-              color: '#1a1a1a'
+              return;
             }
-          };
 
-          const rzp = new (window as any).Razorpay(options);
-          rzp.open();
-        },
-        error: (err) => {
-          this.toastService.error('Failed to initiate payment. Please try again.');
-        }
+            if (typeof (window as any).Razorpay === 'undefined') {
+              this.toastService.error('Razorpay SDK failed to load. Please disable adblockers.');
+              return;
+            }
+
+            const options = {
+              key: environment.razorpayKeyId,
+              amount: (this.post!.price || 0) * 100,
+              currency: 'INR',
+              name: 'InkWell',
+              description: 'Unlock Premium Post',
+              order_id: orderId,
+              handler: (response: any) => {
+                this.paymentService.verifyPayment({
+                  orderId: orderId,
+                  paymentId: response.razorpay_payment_id,
+                  signature: response.razorpay_signature
+                }).subscribe({
+                  next: (res: any) => {
+                    if (res && res.status === 'SUCCESS') {
+                      setTimeout(() => {
+                        window.location.reload();
+                      }, 2000);
+                    } else {
+                      this.toastService.error('Payment verification failed.');
+                    }
+                  },
+                  error: () => {
+                    this.toastService.error('Payment verification failed. Please contact support.');
+                  }
+                });
+              },
+              prefill: {
+                name: user.fullName || user.username,
+                email: user.email
+              },
+              theme: {
+                color: '#1a1a1a'
+              }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.open();
+          },
+          error: () => {
+            this.toastService.error('Failed to initiate payment. Please try again.');
+          }
+        });
       });
     });
   }

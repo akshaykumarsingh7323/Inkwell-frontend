@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { FormsModule } from '@angular/forms';
 import { finalize, of } from 'rxjs';
 import { catchError, timeout } from 'rxjs/operators';
@@ -11,6 +12,7 @@ import { AuthResponse } from '../../models/user.model';
 import { PaymentService } from '../../services/payment.service';
 import { NewsletterService } from '../../services/newsletter.service';
 import { ToastService } from '../../services/toast.service';
+import { ConfirmationService } from '../../services/confirmation.service';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
@@ -19,7 +21,7 @@ declare var Razorpay: any;
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MediaUrlPipe],
   templateUrl: './home.html',
   styleUrl: './home.css',
 })
@@ -30,6 +32,7 @@ export class Home implements OnInit {
   private paymentService = inject(PaymentService);
   private newsletterService = inject(NewsletterService);
   private toastService = inject(ToastService);
+  private confirmationService = inject(ConfirmationService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
 
@@ -157,7 +160,31 @@ export class Home implements OnInit {
     ).subscribe(response => {
       const posts = response.content || [];
       this.posts.set(posts);
+      this.syncPurchasedAccess();
       this.fetchAuthorNames(posts);
+    });
+  }
+
+  private syncPurchasedAccess(): void {
+    const currentUser = this.authService.getCurrentUserSnapshot();
+    if (!currentUser) {
+      return;
+    }
+
+    this.paymentService.getUserPayments(currentUser.userId).pipe(
+      catchError(() => of([]))
+    ).subscribe((payments: any[]) => {
+      const purchasedIds = new Set(
+        payments
+          .filter(payment => payment.status === 'SUCCESS')
+          .map(payment => Number(payment.postId))
+      );
+
+      this.posts.update(currentPosts =>
+        currentPosts.map(post =>
+          purchasedIds.has(post.postId) ? { ...post, accessUnlocked: true } : post
+        )
+      );
     });
   }
 
@@ -226,17 +253,16 @@ export class Home implements OnInit {
     const user = this.authService.getCurrentUserSnapshot();
     const request = {
       email,
-      fullName: user?.fullName,
-      userId: user?.userId ? Number(user.userId) : undefined
+      fullName: user?.fullName
     };
 
     this.newsletterService.subscribe(request).subscribe({
-      next: (res) => {
+      next: () => {
         this.toastService.success('Subscription pending! Check your email to confirm.');
         this.newsletterEmail.set('');
       },
       error: (err) => {
-        this.toastService.error('Failed to subscribe. You may already be subscribed.');
+        this.toastService.error(err?.error?.error || 'Failed to subscribe. You may already be subscribed.');
       }
     });
   }
@@ -274,6 +300,10 @@ export class Home implements OnInit {
     return user?.role === 'ADMIN';
   }
 
+  canAccessPremiumWithoutPayment(post: PostResponse, user: AuthResponse | null): boolean {
+    return !!user && (user.role === 'ADMIN' || user.userId === String(post.authorId));
+  }
+
   navigateToPost(post: PostResponse, event?: Event): void {
     if (event) {
       event.preventDefault();
@@ -307,16 +337,28 @@ export class Home implements OnInit {
         if (hasAccess) {
           this.router.navigate(['/post', post.slug]);
         } else {
-          // Go direct to purchase instead of showing modal
-          this.triggerPurchase(post, user);
+          this.promptPremiumPurchase(post, user);
         }
       },
       error: () => {
         this.isLoading.set(false);
-        // Go direct to purchase instead of showing modal
-        this.triggerPurchase(post, user);
+        this.promptPremiumPurchase(post, user);
       }
     });
+  }
+
+  private async promptPremiumPurchase(post: PostResponse, user: AuthResponse): Promise<void> {
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Do you want to pay?',
+      message: `This premium post requires payment to unlock. Continue to pay ₹${post.price || 0}?`,
+      confirmText: 'Yes, Pay Now',
+      cancelText: 'No',
+      type: 'warning'
+    });
+
+    if (confirmed) {
+      this.triggerPurchase(post, user);
+    }
   }
 
   confirmPurchase(): void {

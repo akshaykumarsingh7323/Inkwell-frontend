@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PostResponse } from '../../services/post.service';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 
 @Component({
   selector: 'app-post-hero',
@@ -17,7 +18,12 @@ export class PostHeroComponent {
   @Input() categoryName: string = 'Essay';
   @Input() readTime: number = 0;
 
+  private readonly FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&q=80';
+  private readonly pipe = new MediaUrlPipe();
+
   getHeroImage(): string {
-    return this.post.featuredImageUrl || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&q=80';
+    const raw = this.post.featuredImageUrl;
+    if (!raw) return this.FALLBACK_IMAGE;
+    return this.pipe.transform(raw) || this.FALLBACK_IMAGE;
   }
 }

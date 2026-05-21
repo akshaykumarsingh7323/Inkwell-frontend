@@ -6,6 +6,9 @@ import { AuthService } from '../services/auth.service';
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const token = authService.getToken();
+  const user = authService.getCurrentUserSnapshot();
+  const userId = user?.userId;
+  const userRole = user?.role;
 
   const isPublicAuthRequest = req.url.includes('/auth/login') ||
     req.url.includes('/auth/register') ||
@@ -14,7 +17,26 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isRefreshRequest = req.url.includes('/auth/refresh');
   const isPublicEndpoint = isPublicRequest(req.url, req.method);
 
-  if (token && !isPublicAuthRequest && !isRefreshRequest) {
+  if (!isPublicAuthRequest && !isRefreshRequest && user && isPublicEndpoint) {
+    const publicHeaders: Record<string, string> = {};
+
+    if (userId) {
+      publicHeaders['X-User-Id'] = String(userId);
+    }
+
+    if (userRole) {
+      publicHeaders['X-User-Role'] = userRole;
+    }
+
+    if (Object.keys(publicHeaders).length > 0) {
+      req = req.clone({
+        setHeaders: publicHeaders
+      });
+    }
+  }
+
+  // Let public endpoints stay truly public so stale auth state does not break them.
+  if (token && !isPublicAuthRequest && !isRefreshRequest && !isPublicEndpoint) {
     console.debug(`[AuthInterceptor] Attaching token to request: ${req.url}`);
     if (authService.isTokenExpired(token) && !isRefreshRequest) {
       console.warn(`[AuthInterceptor] Token expired, attempting refresh...`);
@@ -30,10 +52,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         })
       );
     }
-
-    const user = authService.getCurrentUserSnapshot();
-    const userId = user?.userId;
-    const userRole = user?.role;
 
     const headers: any = {
       Authorization: `Bearer ${token}`
@@ -89,8 +107,7 @@ function isPublicRequest(url: string, method: string): boolean {
   const normalizedMethod = method.toUpperCase();
 
   if (normalizedMethod === 'POST') {
-    return /\/newsletter\/subscribe(?:\?|$)/.test(url) ||
-      /\/posts\/\d+\/view(?:\?|$)/.test(url);
+    return /\/posts\/\d+\/view(?:\?|$)/.test(url);
   }
 
   if (normalizedMethod !== 'GET') {

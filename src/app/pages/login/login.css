@@ -45,6 +45,16 @@
   font-weight: 800;
 }
 
+.mobile-logo {
+  display: none;
+  margin-bottom: 32px;
+  justify-content: center;
+}
+
+.mobile-logo .logo-text {
+  color: var(--primary);
+}
+
 .auth-header h1 {
   font-size: 48px;
   color: white;
@@ -443,5 +453,8 @@
   }
   .right-panel {
     padding: 48px 32px;
+  }
+  .mobile-logo {
+    display: flex;
   }
 }

@@ -14,7 +14,7 @@ export class LoginSuccess implements OnInit {
   private authService = inject(AuthService);
 
   ngOnInit(): void {
-    const token = this.route.snapshot.queryParamMap.get('accessToken');
+    const token = this.route.snapshot.queryParamMap.get('accessToken') || this.route.snapshot.queryParamMap.get('token');
     
     if (token) {
       console.log('OAuth2 token received, finalizing session...');

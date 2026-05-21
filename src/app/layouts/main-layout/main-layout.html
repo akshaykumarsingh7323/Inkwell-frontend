@@ -1,8 +1,10 @@
 <div id="app-container">
   <!-- Shared Dashboard Layout -->
   <div class="layout">
+    <div class="mobile-sidebar-backdrop" [class.open]="mobileSidebarOpen()" (click)="closeMobileSidebar()"></div>
+
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" *ngIf="currentUser$ | async" [class.mobile-open]="mobileSidebarOpen()">
       <div class="brand">
         <div class="b-ico">✦</div>
         <div>
@@ -26,22 +28,24 @@
             </svg>
             All Posts
           </button>
-          
-          <button class="ni" *ngFor="let cat of categories()" [class.active]="activeCat() === cat.name" (click)="filterCat(cat.name)">
-            <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" *ngIf="cat.name === 'Technology'">
-              <path d="M2 4l4 4-4 4M9 12h5"/>
-            </svg>
-            <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" *ngIf="cat.name === 'Design'">
-              <circle cx="8" cy="8" r="3"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/>
-            </svg>
-            <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" *ngIf="cat.name !== 'Technology' && cat.name !== 'Design'">
-              <path d="M8 2l1.5 4.5H14l-3.7 2.7 1.4 4.3L8 11l-3.7 2.5 1.4-4.3L2 6.5h4.5z"/>
-            </svg>
-            {{ cat.name }}
+          <button class="ni" routerLink="/become-author" routerLinkActive="active" *ngIf="currentUser$ | async as user">
+            <ng-container *ngIf="!isAdmin(user) && !isAuthor(user)">
+              <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+              Create Post
+            </ng-container>
           </button>
         </div>
         
         <div class="ns" *ngIf="currentUser$ | async as user">
+          <button class="ni" routerLink="/my-purchases" routerLinkActive="active" *ngIf="!isAdmin(user)">
+            <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M3 4h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z"/>
+              <path d="M5 4V3a3 3 0 016 0v1"/>
+              <path d="M6.5 8.5h3"/>
+            </svg>
+            My Purchases
+          </button>
+
           <ng-container *ngIf="isAdmin(user) || isAuthor(user)">
             <button class="ni" routerLink="/admin" routerLinkActive="active" *ngIf="isAdmin(user)">
               <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -53,18 +57,16 @@
               <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 4h14v10H1V4zM1 7h14M4 10h1M7 10h1M10 10h1"/></svg>
               Revenue
             </button>
-            <button class="ni" routerLink="/author-dashboard" routerLinkActive="active" *ngIf="isAuthor(user) && !isAdmin(user) && !isAuthorConsoleActive()">
-              <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/>
-              </svg>
-              My Dashboard
-            </button>
           </ng-container>
 
           <ng-container *ngIf="isAdmin(user)">
             <button class="ni" routerLink="/user-management" routerLinkActive="active">
               <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
               Users
+            </button>
+            <button class="ni" routerLink="/admin-author-requests" routerLinkActive="active">
+              <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 11h2v-2h2v2h2v2h-2v2h-2v-2h-2v-2zm-4 3c-2.67 0-8 1.34-8 4v2h12v-2c0-.57.17-1.11.45-1.58-.93-.24-2.12-.42-4.45-.42zm0-4c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z"/></svg>
+              Author Requests
             </button>
             <button class="ni" routerLink="/admin-posts" routerLinkActive="active">
               <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="1"/><path d="M5 6h6M5 9h4"/></svg>
@@ -99,7 +101,7 @@
             </button>
           </ng-container>
 
-          <ng-container *ngIf="isAuthor(user) && !isAdmin(user) && isAuthorConsoleActive()">
+          <ng-container *ngIf="isAuthor(user) && !isAdmin(user)">
              <button class="ni" routerLink="/author-dashboard" routerLinkActive="active">
                <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                  <rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/>
@@ -126,10 +128,6 @@
                <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13h12M2 10l4-4 3 3 5-5"/></svg>
                Analytics
              </button>
-             <button class="ni" routerLink="/newsletter-management" routerLinkActive="active">
-               <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4l6 4 6-4M2 4h12v9H2V4z"/></svg>
-               Newsletter
-             </button>
           </ng-container>
         </div>
 
@@ -146,9 +144,6 @@
             </svg>
             Logout
           </button>
-          <button class="ni ni-signin" routerLink="/login" *ngIf="!(currentUser$ | async)">
-            Sign In
-          </button>
         </div>
       </nav>
 
@@ -160,16 +155,21 @@
     <!-- Main Content Area -->
     <div class="main">
       <header class="topbar">
+        <button class="mobile-menu-btn" type="button" aria-label="Open sidebar menu" (click)="toggleMobileSidebar()" *ngIf="currentUser$ | async">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <div class="tnav">
           <span class="tl" routerLink="/home" routerLinkActive="active">Home</span>
           <span class="tl" routerLink="/explore" routerLinkActive="active">Explore</span>
           <span class="tl" [routerLink]="getNewsletterRoute()" routerLinkActive="active">Newsletter</span>
         </div>
         <div class="trgt">
-          <div class="ib">☀</div>
+          <div class="ib" (click)="toggleTheme()" style="cursor: pointer;">{{ isDarkMode() ? '🌙' : '☀' }}</div>
           <div class="ib" routerLink="/notifications" *ngIf="currentUser$ | async">🔔</div>
           <div class="av" *ngIf="currentUser$ | async as user" (click)="goToProfile()">{{ getUserInitials(user.fullName || '') }}</div>
-          <div class="av" *ngIf="!(currentUser$ | async)" routerLink="/login">GS</div>
+          <button class="ni-signin" style="margin-left: 8px;" routerLink="/login" *ngIf="!(currentUser$ | async)">Sign In</button>
         </div>
       </header>
 

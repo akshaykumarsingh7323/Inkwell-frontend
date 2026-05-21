@@ -29,7 +29,7 @@
               <th>Post Details</th>
               <th>Status</th>
               <th>Performance</th>
-              <th>Publication Date</th>
+              <th>Last Modified</th>
               <th class="actions-col">Actions</th>
             </tr>
           </thead>
@@ -37,10 +37,12 @@
             <tr *ngFor="let post of posts">
               <td>
                 <div class="post-cell">
-                  <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop'" class="post-thumb" alt="thumb">
+                  <a [routerLink]="['/post', post.slug]">
+                    <img [src]="(post.featuredImageUrl | mediaUrl) || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?q=80&w=2070&auto=format&fit=crop'" class="post-thumb" alt="thumb">
+                  </a>
                   <div>
-                    <span class="post-title">{{ post.title }}</span>
-                    <span class="post-author">By Author ID: {{ post.authorId }}</span>
+                    <a class="post-title" [routerLink]="['/post', post.slug]">{{ post.title }}</a>
+                    <a class="post-author" [routerLink]="['/author', post.authorId]">By {{ getAuthorDisplayName(post.authorId) }}</a>
                   </div>
                 </div>
               </td>
@@ -54,7 +56,7 @@
                 </div>
               </td>
               <td class="date-col">
-                {{ post.publishedAt | date:'MMM d, yyyy' }}
+                {{ (post.updatedAt || post.publishedAt || post.createdAt) | date:'MMM d, yyyy' }}
               </td>
               <td class="actions-col">
                 <div class="action-buttons-wrapper">

@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NewsletterService } from '../../services/newsletter.service';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-footer',
@@ -13,6 +15,8 @@ import { NewsletterService } from '../../services/newsletter.service';
 })
 export class Footer {
   private newsletterService = inject(NewsletterService);
+  private authService = inject(AuthService);
+  private router = inject(Router);
   
   currentYear = new Date().getFullYear();
   email = '';
@@ -22,6 +26,13 @@ export class Footer {
 
   subscribe(): void {
     if (!this.email.trim()) return;
+
+    if (!this.authService.isLoggedIn()) {
+      this.statusMessage = 'Please sign in to subscribe to the newsletter.';
+      this.isError = true;
+      this.authService.redirectToLogin(this.router.url);
+      return;
+    }
     
     this.isSubmitting = true;
     this.statusMessage = '';

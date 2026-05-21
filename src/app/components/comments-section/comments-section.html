@@ -47,7 +47,7 @@
             <span *ngIf="!getAuthor(comment.authorId)?.avatarUrl">{{ getAuthor(comment.authorId)?.username?.charAt(0) || 'U' }}</span>
           </div>
           <div class="author-info">
-            <span class="name" [routerLink]="['/author', comment.authorId]" style="cursor: pointer;">{{ getAuthor(comment.authorId)?.fullName || getAuthor(comment.authorId)?.username || 'User' }}</span>
+            <span class="name" [routerLink]="['/author', comment.authorId]" style="cursor: pointer;">{{ getAuthor(comment.authorId)?.username || getAuthor(comment.authorId)?.fullName || 'User' }}</span>
             <span class="time">{{ comment.createdAt | date:'mediumDate' }}</span>
           </div>
         </div>
@@ -80,7 +80,7 @@
             <div class="comment-author">
               <div class="author-info" style="flex-direction: row; align-items: center; gap: 8px;">
                 <a class="name" [routerLink]="['/author', reply.authorId]" style="cursor: pointer; text-decoration: none; color: var(--on-background); font-weight: 700;">
-                  {{ getAuthor(reply.authorId)?.fullName || getAuthor(reply.authorId)?.username || 'User' }}
+                  {{ getAuthor(reply.authorId)?.username || getAuthor(reply.authorId)?.fullName || 'User' }}
                 </a>
                 <span class="dot" style="font-size: 10px; color: var(--border-strong);">•</span>
                 <span class="time">{{ reply.createdAt | date:'shortDate' }}</span>

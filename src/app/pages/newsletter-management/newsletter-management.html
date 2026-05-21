@@ -5,7 +5,7 @@
     <p class="page-subtitle">Broadcasting platform updates to your audience.</p>
   </div>
 
-  <div *ngIf="statusMessage" class="status-msg">
+  <div *ngIf="statusMessage" class="status-msg" [class.error]="statusIsError">
     <span>✨</span> {{ statusMessage }}
   </div>
 
@@ -37,10 +37,8 @@
         <div class="form-row">
           <div class="form-group">
             <label for="status">Target Audience</label>
-            <select id="status" class="form-select" [(ngModel)]="campaignFilters.status">
+            <select id="status" class="form-select" [(ngModel)]="campaignFilters.status" disabled>
               <option value="ACTIVE">Active subscribers</option>
-              <option value="PENDING">Pending subscribers</option>
-              <option value="UNSUBSCRIBED">Unsubscribed users</option>
             </select>
           </div>
           <div class="form-group">
@@ -49,7 +47,7 @@
           </div>
         </div>
         <div class="compose-footer">
-          <p class="audience-hint">Targeting <strong>{{ activeSubscribers }}</strong> active subscribers by default</p>
+          <p class="audience-hint">Targeting <strong>{{ targetedSubscriberCount }}</strong> subscribers with the current filters</p>
           <button class="btn-primary" (click)="sendNewsletter()" [disabled]="isSending">
             {{ isSending ? 'Dispatching...' : 'Send Campaign Now' }}
           </button>
@@ -80,16 +78,18 @@
         <h3 class="card-title">Recent Activity</h3>
         <div class="subscriber-list">
           <div *ngIf="isLoading" class="list-loading">Synchronizing...</div>
-          <div *ngIf="!isLoading && subscribers.length === 0" class="list-empty">No active subscribers.</div>
+          <div *ngIf="!isLoading && subscribers.length === 0" class="list-empty">No subscribers found.</div>
 
           <div class="subscriber-item" *ngFor="let s of subscribers.slice(0, 10)">
-            <div class="sub-info">
-              <p class="sub-email">{{ s.email }}</p>
-              <p class="sub-date">{{ s.subscribedAt | date:'shortDate' }}</p>
+            <div class="sub-main">
+              <div class="sub-info">
+                <p class="sub-email">{{ s.email }}</p>
+                <p class="sub-date">{{ s.subscribedAt | date:'shortDate' }}</p>
+              </div>
+              <span class="status-pill" [class.active]="isSubscriberActive(s)">
+                {{ isSubscriberActive(s) ? 'Active' : (s.status || 'Pending') }}
+              </span>
             </div>
-            <span class="status-pill" [class.active]="isSubscriberActive(s)">
-              {{ isSubscriberActive(s) ? 'Active' : (s.status || 'Pending') }}
-            </span>
           </div>
         </div>
       </div>

@@ -110,6 +110,10 @@ export class PostService {
     return this.http.get<PageResponse<PostResponse>>(`${this.apiUrl}/public/author/${authorId}?page=${page}&size=${size}`);
   }
 
+  getAllPostsForAdmin(page = 0, size = 10): Observable<PageResponse<PostResponse>> {
+    return this.http.get<PageResponse<PostResponse>>(`${this.apiUrl}/admin/all?page=${page}&size=${size}`);
+  }
+
   getPublishedPostsByCategory(categoryId: number, page = 0, size = 10): Observable<PageResponse<PostResponse>> {
     return this.http.get<PageResponse<PostResponse>>(`${this.apiUrl}/published/category/${categoryId}?page=${page}&size=${size}`);
   }

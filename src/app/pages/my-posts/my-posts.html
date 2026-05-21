@@ -48,7 +48,7 @@
               <td>
                 <div class="story-info">
                   <div class="story-thumb">
-                    <img [src]="post.featuredImageUrl || 'assets/default-post.jpg'" onerror="this.src='https://images.unsplash.com/photo-1455390582262-044cdead277a?w=100&q=80'">
+                    <img [src]="(post.featuredImageUrl | mediaUrl) || 'assets/default-post.jpg'" onerror="this.src='https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
                   </div>
                   <div class="story-text">
                     <a [routerLink]="['/post', post.slug]" class="story-title">{{ post.title || '(Untitled Draft)' }}</a>

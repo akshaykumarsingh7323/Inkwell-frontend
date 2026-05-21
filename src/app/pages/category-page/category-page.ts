@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { Navbar } from '../../components/navbar/navbar';
 import { Footer } from '../../components/footer/footer';
@@ -13,7 +14,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-category-page',
   standalone: true,
-  imports: [CommonModule, RouterLink, Navbar, Footer],
+  imports: [CommonModule, RouterLink, Navbar, Footer, MediaUrlPipe],
   templateUrl: './category-page.html',
   styleUrl: './category-page.css',
 })

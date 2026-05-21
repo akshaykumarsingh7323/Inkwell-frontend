@@ -9,6 +9,20 @@ export interface PaymentVerifyRequest {
   signature: string;
 }
 
+export interface PaymentRecord {
+  paymentId: string;
+  userId: string;
+  postId: string;
+  amount: number;
+  totalAmount: number;
+  adminCommission: number;
+  authorEarning: number;
+  authorId: string;
+  status: string;
+  orderId: string;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -28,8 +42,12 @@ export class PaymentService {
     return this.http.get<boolean>(`${this.apiUrl}/check`, { params: { userId, postId } });
   }
 
-  getUserPayments(userId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/user/${userId}`);
+  getUserPayments(userId: string): Observable<PaymentRecord[]> {
+    return this.http.get<PaymentRecord[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  getMyPurchasedPosts(): Observable<PaymentRecord[]> {
+    return this.http.get<PaymentRecord[]>(`${this.apiUrl}/me/purchases`);
   }
 
   getSubscriptionStatus(userId: string): Observable<boolean> {

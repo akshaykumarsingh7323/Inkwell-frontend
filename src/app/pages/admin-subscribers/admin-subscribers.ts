@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NewsletterService, Subscriber, NewsletterAnalytics } from '../../services/newsletter.service';
@@ -13,6 +13,7 @@ import { catchError, of, timeout, finalize } from 'rxjs';
 })
 export class AdminSubscribers implements OnInit {
   private newsletterService = inject(NewsletterService);
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
   // Pagination & Filter State
   subscribers = signal<Subscriber[]>([]);
@@ -30,9 +31,19 @@ export class AdminSubscribers implements OnInit {
   analytics = signal<NewsletterAnalytics | null>(null);
   selectedSubscriber = signal<Subscriber | null>(null);
 
+  searchInput = '';
+  statusFilterValue = '';
+  preferenceFilterValue = '';
+
   ngOnInit(): void {
     this.loadAnalytics();
     this.loadSubscribers();
+  }
+
+  ngOnDestroy(): void {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
   }
 
   loadAnalytics(): void {
@@ -67,11 +78,49 @@ export class AdminSubscribers implements OnInit {
   }
 
   onSearch(): void {
+    this.searchQuery.set(this.searchInput.trim());
     this.currentPage.set(0);
     this.loadSubscribers();
   }
 
+  onSearchInput(value: string): void {
+    this.searchInput = value;
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.searchDebounceTimer = setTimeout(() => {
+      this.onSearch();
+    }, 250);
+  }
+
   onFilterChange(): void {
+    this.statusFilter.set(this.statusFilterValue);
+    this.preferenceFilter.set(this.preferenceFilterValue);
+    this.currentPage.set(0);
+    this.loadSubscribers();
+  }
+
+  applyStatusFilter(status: string): void {
+    this.statusFilterValue = status;
+    this.onFilterChange();
+  }
+
+  isStatusCardActive(status: string): boolean {
+    return this.statusFilterValue === status;
+  }
+
+  isTotalCardActive(): boolean {
+    return this.statusFilterValue === '';
+  }
+
+  resetFilters(): void {
+    this.searchInput = '';
+    this.statusFilterValue = '';
+    this.preferenceFilterValue = '';
+    this.searchQuery.set('');
+    this.statusFilter.set('');
+    this.preferenceFilter.set('');
     this.currentPage.set(0);
     this.loadSubscribers();
   }

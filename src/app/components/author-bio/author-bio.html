@@ -8,13 +8,6 @@
     <div class="author-details">
       <div class="author-name-row">
         <h3>Written by <a [routerLink]="['/author', author.userId]">{{ author.fullName || author.username }}</a></h3>
-        <button class="follow-btn" 
-                [class.following]="isFollowing" 
-                [class.pending]="isPending"
-                [disabled]="isPending"
-                (click)="toggleFollow()">
-          {{ isFollowing ? 'Unfollow' : (isPending ? 'Pending' : 'Follow') }}
-        </button>
       </div>
       <p class="author-bio-text">{{ author.bio || 'Sharing thoughts and stories on Inkwell.' }}</p>
     </div>

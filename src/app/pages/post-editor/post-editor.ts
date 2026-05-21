@@ -10,8 +10,8 @@ import { ToastService } from '../../services/toast.service';
 import { PromptService } from '../../services/prompt.service';
 import { AuthResponse } from '../../models/user.model';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
-import { forkJoin, interval, Subscription, Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { forkJoin, interval, Subscription, Observable, of, Subject } from 'rxjs';
+import { catchError, debounceTime } from 'rxjs/operators';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
@@ -48,6 +48,10 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
   postContent: string = '';
   postExcerpt: string = '';
   postSlug: string = '';
+  /**
+   * Raw URL stored in the database (may be relative, e.g. /media/files/abc.jpg).
+   * Always use featuredImagePreviewUrl in templates so the browser gets an absolute URL.
+   */
   featuredImageUrl: string = '';
   isPremium: boolean = false;
   price: number = 0;
@@ -66,6 +70,10 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
 
   isSaving: boolean = false;
   isUploading: boolean = false;
+  /** True when the browser fired an error event for the featured image src */
+  imageLoadFailed: boolean = false;
+  /** True while the browser is fetching the image after upload (before load/error fires) */
+  imageLoading: boolean = false;
   lastSaved: Date | null = null;
   tagError = '';
   errorMessage = '';
@@ -76,6 +84,7 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
   private lastSavedContent: string = '';
   private lastSavedTitle: string = '';
   private autoSaveSub?: Subscription;
+  private autoSave$ = new Subject<void>();
 
   ngOnInit(): void {
     this.refreshCurrentUser();
@@ -100,8 +109,10 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
       }
     });
 
-    // Auto-save every 5 seconds if changed and has content
-    this.autoSaveSub = interval(5000).subscribe(() => {
+    // Auto-save 3 seconds after the user stops typing/changing content
+    this.autoSaveSub = this.autoSave$.pipe(
+      debounceTime(3000)
+    ).subscribe(() => {
       if (this.shouldAutoSave()) {
         this.saveDraft();
       }
@@ -138,6 +149,10 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
     return !!hasContent && isDirty && !this.isSaving && !this.isUploading;
   }
 
+  isDirty(): boolean {
+    return this.postTitle !== this.lastSavedTitle || this.postContent !== this.lastSavedContent;
+  }
+
   ngAfterViewInit(): void {
     this.initEditor();
   }
@@ -169,6 +184,8 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
     if (this.statusMessage.includes('recent draft')) {
       this.statusMessage = '';
     }
+
+    this.autoSave$.next();
   }
 
   initEditor(): void {
@@ -212,6 +229,7 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
         }
 
         this.cdr.markForCheck();
+        this.autoSave$.next();
       },
     });
   }
@@ -319,32 +337,59 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
 
   triggerFeaturedImageUpload() {
     if (this.fileInput) {
+      // Reset the input so selecting the same file again triggers the change event
+      this.fileInput.nativeElement.value = '';
       this.fileInput.nativeElement.click();
     }
   }
 
   onImageSelected(event: any) {
-    const file = event.target.files[0];
+    const file: File | undefined = event.target.files[0];
     if (file) {
       this.uploadImage(file);
     }
   }
 
+  /** Called by the (error) binding on the preview <img> tag */
+  onImageError(): void {
+    this.imageLoadFailed = true;
+    this.imageLoading = false;
+  }
+
+  /** Called by the (load) binding on the preview <img> tag */
+  onImageLoad(): void {
+    this.imageLoadFailed = false;
+    this.imageLoading = false;
+  }
+
+  private resetImageState(): void {
+    this.imageLoadFailed = false;
+    this.imageLoading = false;
+  }
+
   uploadImage(file: File) {
     this.isUploading = true;
+    this.imageLoading = true;
+    this.imageLoadFailed = false;
     this.errorMessage = '';
-    
+
     this.mediaService.uploadMedia(file).subscribe({
       next: (res) => {
+        // Store raw URL in the model; use featuredImagePreviewUrl in the template
         this.featuredImageUrl = res.url;
         this.featuredImageMediaId = res.mediaId;
+        // imageLoading stays true until the browser fires (load) or (error)
         this.userMedia.unshift(res);
         this.isUploading = false;
         this.toastService.success('Image uploaded successfully.');
       },
-      error: (err) => {
+      error: () => {
         this.isUploading = false;
-        this.toastService.error('Failed to upload image.');
+        this.imageLoading = false;
+        this.imageLoadFailed = false;
+        this.toastService.error(
+          'Upload failed. Check that the file is a valid image (JPEG/PNG/GIF/WebP, max 10 MB).'
+        );
       }
     });
   }
@@ -352,6 +397,19 @@ export class PostEditor implements OnInit, OnDestroy, AfterViewInit {
   selectMedia(media: any) {
     this.featuredImageUrl = media.url;
     this.featuredImageMediaId = media.mediaId;
+    // Reset state: let (load)/(error) re-fire for the newly set src
+    this.resetImageState();
+    this.imageLoading = true;
+  }
+
+  /**
+   * Absolute URL suitable for use in an <img [src]> binding.
+   * Converts relative paths from the local storage backend into fully-qualified
+   * URLs the browser can fetch. Passes through absolute URLs (e.g. old S3 links)
+   * unchanged.
+   */
+  get featuredImagePreviewUrl(): string {
+    return this.mediaService.resolveMediaUrl(this.featuredImageUrl);
   }
 
   get wordCount(): number {

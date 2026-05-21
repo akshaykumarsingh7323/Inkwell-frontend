@@ -134,7 +134,7 @@ export class NewsletterConfirm implements OnInit {
         this.isProcessing = false;
       },
       error: (err) => {
-        this.setError('Confirmation Failed', err.error || 'The link might be expired or already used.');
+        this.setError('Confirmation Failed', err.error?.error || 'The link might be expired or already used.');
         this.isProcessing = false;
       }
     });

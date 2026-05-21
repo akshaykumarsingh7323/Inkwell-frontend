@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, signal, ViewChild, ElementRef, computed } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { combineLatest, forkJoin, of } from 'rxjs';
 import { catchError, filter, take } from 'rxjs/operators';
@@ -9,7 +10,6 @@ import { AuthService } from '../../services/auth.service';
 import { CategoryService, CategoryResponse } from '../../services/category.service';
 import { PostResponse, PostService } from '../../services/post.service';
 import { MediaService } from '../../services/media.service';
-import { NewsletterService } from '../../services/newsletter.service';
 import { NotificationService } from '../../services/notification.service';
 import { ToastService } from '../../services/toast.service';
 import { PublicUserProfile } from '../../models/user.model';
@@ -18,7 +18,7 @@ import { FormsModule } from '@angular/forms';
 @Component({
   selector: 'app-author-profile-page',
   standalone: true,
-  imports: [CommonModule, Footer, FormsModule, RouterLink],
+  imports: [CommonModule, Footer, FormsModule, RouterLink, MediaUrlPipe],
   templateUrl: './author-profile-page.html',
   styleUrl: './author-profile-page.css'
 })
@@ -29,7 +29,6 @@ export class AuthorProfilePageComponent implements OnInit {
   private postService = inject(PostService);
   private categoryService = inject(CategoryService);
   private mediaService = inject(MediaService);
-  private newsletterService = inject(NewsletterService);
   private notificationService = inject(NotificationService);
   private toastService = inject(ToastService);
   private location = inject(Location);
@@ -47,11 +46,6 @@ export class AuthorProfilePageComponent implements OnInit {
   isEditing = false;
   errorMessage = '';
   successMessage = '';
-
-  followerCount = signal<number>(0);
-  isFollowing = signal<boolean>(false);
-  isPending = signal<boolean>(false);
-  isFollowLoading = signal<boolean>(false);
 
   currentUser = this.authService.getCurrentUserSnapshot();
   isOwnProfile = false;
@@ -166,10 +160,9 @@ export class AuthorProfilePageComponent implements OnInit {
     forkJoin({
       author: profileObs,
       posts: this.postService.getPublishedPostsByAuthor(userId, 0, 24).pipe(catchError(() => of({ content: [] }))),
-      categories: this.categoryService.getCategories().pipe(catchError(() => of([]))),
-      followerCount: this.newsletterService.getSubscriberCount(Number(userId)).pipe(catchError(() => of(0)))
+      categories: this.categoryService.getCategories().pipe(catchError(() => of([])))
     }).subscribe({
-      next: ({ author, posts, categories, followerCount }) => {
+      next: ({ author, posts, categories }) => {
         if (!author) {
           this.errorMessage = 'Author profile not found or could not be loaded.';
           this.isLoading = false;
@@ -178,16 +171,6 @@ export class AuthorProfilePageComponent implements OnInit {
         this.author = author;
         this.posts = posts.content ?? [];
         this.categories = categories;
-        this.followerCount.set(followerCount);
-
-        // Check if current user is following this author
-        if (this.currentUser && !this.isOwnProfile) {
-          this.newsletterService.getSubscriptionStatus(this.currentUser.email, Number(userId))
-            .subscribe(status => {
-              this.isFollowing.set(status === 'ACTIVE');
-              this.isPending.set(status === 'PENDING');
-            });
-        }
         
         // If it's our own profile, ensure we have the private details (email, phone, name)
         if (this.isOwnProfile && this.currentUser) {
@@ -377,59 +360,14 @@ export class AuthorProfilePageComponent implements OnInit {
     return this.getDisplayName().charAt(0).toUpperCase();
   }
 
+  shouldShowPostsSection(): boolean {
+    const role = (this.author?.role || '').toUpperCase();
+    return role !== 'ADMIN';
+  }
+
   getCategoryName(categoryId?: number): string {
     if (!categoryId) return 'Uncategorized';
     return this.categories.find((c) => c.categoryId === categoryId)?.name || 'Uncategorized';
-  }
-
-  toggleFollow(): void {
-    if (!this.currentUser) {
-      this.authService.redirectToLogin();
-      return;
-    }
-
-    if (!this.author) return;
-
-    this.isFollowLoading.set(true);
-    const previousState = this.isFollowing();
-    
-    if (previousState) {
-      // Optimistic Update for Unfollow
-      this.isFollowing.set(false);
-      this.followerCount.update(c => Math.max(0, c - 1));
-
-      this.newsletterService.unsubscribeByEmail(this.currentUser.email, Number(this.author.userId)).subscribe({
-        next: () => {
-          this.isFollowLoading.set(false);
-          this.toastService.success(`You unfollowed ${this.author?.fullName}`);
-        },
-        error: () => {
-          // Revert
-          this.isFollowing.set(true);
-          this.followerCount.update(c => c + 1);
-          this.isFollowLoading.set(false);
-          this.toastService.error('Failed to unfollow.');
-        }
-      });
-    } else {
-      // Follow action (requires confirmation)
-      this.newsletterService.subscribe({
-        email: this.currentUser.email,
-        fullName: this.currentUser.fullName,
-        userId: Number(this.currentUser.userId),
-        followedAuthorId: Number(this.author.userId)
-      }).subscribe({
-        next: () => {
-          this.isFollowLoading.set(false);
-          this.isPending.set(true); // Show pending state
-          this.toastService.success(`Follow request sent for ${this.author?.fullName}! Check your email to confirm.`);
-        },
-        error: () => {
-          this.isFollowLoading.set(false);
-          this.toastService.error('Failed to follow.');
-        }
-      });
-    }
   }
 
   openMessageModal(): void {

@@ -2,8 +2,6 @@ import { Component, OnInit, OnDestroy, AfterViewInit, inject, ViewChild, Element
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NewsletterService, Subscriber, CampaignRequest, NewsletterAnalytics } from '../../services/newsletter.service';
-import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
 import { catchError, of, timeout } from 'rxjs';
 import { Editor } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
@@ -20,8 +18,6 @@ import Underline from '@tiptap/extension-underline';
 })
 export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
   private newsletterService = inject(NewsletterService);
-  private authService = inject(AuthService);
-  private router = inject(Router);
 
   @ViewChild('editorContainer') editorContainer!: ElementRef;
 
@@ -31,7 +27,7 @@ export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
   isSending = false;
   errorMessage = '';
   statusMessage = '';
-  currentUser$ = this.authService.currentUser$;
+  statusIsError = false;
   
   editor: Editor | null = null;
 
@@ -63,7 +59,12 @@ export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
     this.editor = new Editor({
       element: this.editorContainer.nativeElement,
       extensions: [
-        StarterKit,
+        StarterKit.configure({
+          // Avoid duplicate extension registration warnings while keeping
+          // the configured link and underline behavior below.
+          link: false,
+          underline: false,
+        }),
         Underline,
         Link.configure({ openOnClick: false }),
         Placeholder.configure({ placeholder: 'Start writing your campaign content here...' })
@@ -113,11 +114,13 @@ export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
   sendNewsletter(): void {
     if (!this.newsletter.subject || !this.newsletter.content) {
       this.statusMessage = 'Subject and content are required.';
+      this.statusIsError = true;
       return;
     }
 
     this.isSending = true;
     this.statusMessage = '';
+    this.statusIsError = false;
 
     const tags = this.campaignFilters.tags
       .split(',')
@@ -127,11 +130,11 @@ export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
     this.newsletterService.sendCampaign({
       subject: this.newsletter.subject,
       content: this.newsletter.content,
-      status: this.campaignFilters.status || undefined,
       tags: tags.length > 0 ? tags : undefined
     }).subscribe({
       next: () => {
         this.statusMessage = 'Newsletter dispatched successfully.';
+        this.statusIsError = false;
         this.newsletter = { subject: '', content: '' };
         this.campaignFilters = { status: 'ACTIVE', tags: '' };
         this.isSending = false;
@@ -139,6 +142,7 @@ export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
       },
       error: () => {
         this.statusMessage = 'Failed to send newsletter.';
+        this.statusIsError = true;
         this.isSending = false;
       }
     });
@@ -146,6 +150,27 @@ export class NewsletterManagement implements OnInit, OnDestroy, AfterViewInit {
 
   get activeSubscribers(): number {
     return this.analytics?.activeSubscribers || 0;
+  }
+
+  get targetedSubscriberCount(): number {
+    const tags = this.campaignFilters.tags
+      .split(',')
+      .map((tag) => tag.trim().toLowerCase())
+      .filter(Boolean);
+
+    return this.subscribers.filter((subscriber) => {
+      const matchesStatus = (subscriber.status || 'PENDING').toUpperCase() === 'ACTIVE';
+      if (!matchesStatus) {
+        return false;
+      }
+
+      if (tags.length === 0) {
+        return true;
+      }
+
+      const preferences = (subscriber.preferences || '').toLowerCase();
+      return tags.some((tag) => preferences.includes(tag));
+    }).length;
   }
 
   isSubscriberActive(subscriber: Subscriber): boolean {

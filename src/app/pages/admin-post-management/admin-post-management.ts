@@ -1,17 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { PostService, PostResponse } from '../../services/post.service';
 import { AuthService } from '../../services/auth.service';
 import { NotificationService } from '../../services/notification.service';
 import { ToastService } from '../../services/toast.service';
 import { ConfirmationService } from '../../services/confirmation.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import { catchError, of, take, Subscription, timeout } from 'rxjs';
+import { PublicUserProfile } from '../../models/user.model';
+import { catchError, forkJoin, of, Subscription, timeout } from 'rxjs';
+import { MediaUrlPipe } from '../../pipes/media-url.pipe';
 
 @Component({
   selector: 'app-admin-post-management',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink, MediaUrlPipe],
   templateUrl: './admin-post-management.html',
   styleUrl: './admin-post-management.css'
 })
@@ -25,6 +28,7 @@ export class AdminPostManagement implements OnInit {
   private route = inject(ActivatedRoute);
   
   posts: PostResponse[] = [];
+  authorProfiles: Record<number, PublicUserProfile> = {};
   isLoading = true;
   errorMessage = '';
   authorFilterId: number | null = null;
@@ -49,7 +53,7 @@ export class AdminPostManagement implements OnInit {
 
     const request$ = this.authorFilterId 
       ? this.postService.getPostsByAuthor(this.authorFilterId, 0, 100)
-      : this.postService.getPublishedPosts(0, 100);
+      : this.postService.getAllPostsForAdmin(0, 100);
 
     request$.pipe(
       timeout(60000),
@@ -62,8 +66,40 @@ export class AdminPostManagement implements OnInit {
     ).subscribe((res: any) => {
       console.log('Posts fetch result:', res);
       this.posts = res.content || [];
+      this.loadAuthorProfiles(this.posts);
       this.isLoading = false;
     });
+  }
+
+  loadAuthorProfiles(posts: PostResponse[]): void {
+    const uniqueAuthorIds = Array.from(new Set(posts.map(post => Number(post.authorId)).filter(id => !Number.isNaN(id))));
+
+    if (uniqueAuthorIds.length === 0) {
+      this.authorProfiles = {};
+      return;
+    }
+
+    forkJoin(
+      uniqueAuthorIds.map(id =>
+        this.authService.getPublicProfile(id).pipe(
+          catchError(() => of({
+            userId: String(id),
+            username: `User #${id}`
+          } as PublicUserProfile))
+        )
+      )
+    ).subscribe(profiles => {
+      const nextProfiles: Record<number, PublicUserProfile> = {};
+      profiles.forEach(profile => {
+        nextProfiles[Number(profile.userId)] = profile;
+      });
+      this.authorProfiles = nextProfiles;
+    });
+  }
+
+  getAuthorDisplayName(authorId: number): string {
+    const profile = this.authorProfiles[authorId];
+    return profile?.username || profile?.fullName || `User #${authorId}`;
   }
 
   clearFilter(): void {

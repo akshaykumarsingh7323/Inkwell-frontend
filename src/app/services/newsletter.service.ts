@@ -6,8 +6,7 @@ import { environment } from '../../environments/environment';
 export interface SubscribeRequest {
   email: string;
   fullName?: string;
-  userId?: string | number;
-  followedAuthorId?: string | number;
+  preferences?: string;
 }
 
 export interface NewsletterRequest {
@@ -60,18 +59,21 @@ export class NewsletterService {
     return this.http.post(`${this.apiUrl}/subscribe`, request, { responseType: 'text' });
   }
 
-  getSubscriberCount(authorId?: string | number): Observable<number> {
-    let params: any = {};
-    if (authorId) {
-      params.authorId = authorId.toString();
-    }
-    return this.http.get<number>(`${this.apiUrl}/count`, { params }).pipe(
+  getCurrentUserSubscription(): Observable<Subscriber | null> {
+    return this.http.get<Subscriber>(`${this.apiUrl}/me`).pipe(
+      timeout(5000),
+      catchError(() => of(null))
+    );
+  }
+
+  getSubscriberCount(): Observable<number> {
+    return this.http.get<number>(`${this.apiUrl}/count`).pipe(
       timeout(30000)
     );
   }
 
   sendNewsletter(request: NewsletterRequest): Observable<string> {
-    return this.http.post(`${this.apiUrl}/send`, request, { responseType: 'text' });
+    return this.http.post(`${this.apiUrl}/sendNewsletter`, request, { responseType: 'text' });
   }
 
   notifyNewPost(title: string, url: string): Observable<string> {
@@ -85,12 +87,8 @@ export class NewsletterService {
     return this.http.post(`${this.apiUrl}/campaign`, request, { responseType: 'text' });
   }
 
-  getAllSubscribers(authorId?: string | number): Observable<Subscriber[]> {
-    let params: any = {};
-    if (authorId) {
-      params.authorId = authorId.toString();
-    }
-    return this.http.get<Subscriber[]>(`${this.apiUrl}/subscribers`, { params });
+  getAllSubscribers(): Observable<Subscriber[]> {
+    return this.http.get<Subscriber[]>(`${this.apiUrl}/subscribers`);
   }
 
   confirmSubscription(token: string): Observable<string> {
@@ -101,43 +99,35 @@ export class NewsletterService {
     return this.http.get(`${this.apiUrl}/unsubscribe`, { params: { token }, responseType: 'text' });
   }
 
-  updatePreferences(subscriberId: number, request: PreferenceRequest): Observable<string> {
-    return this.http.put(`${this.apiUrl}/preferences/${subscriberId}`, request, { responseType: 'text' });
+  updatePreferences(request: PreferenceRequest): Observable<string> {
+    return this.http.put(`${this.apiUrl}/preferences`, request, { responseType: 'text' });
   }
 
   resendConfirmation(request: ResendConfirmationRequest): Observable<string> {
     return this.http.post(`${this.apiUrl}/resend-confirmation`, request, { responseType: 'text' });
   }
 
-  getSubscriptionStatus(email: string, authorId: string | number): Observable<'ACTIVE' | 'PENDING' | 'NONE'> {
-    return this.http.get<Subscriber>(`${this.apiUrl}/subscribers/${email}`, { 
-      params: { authorId: authorId.toString() } 
-    }).pipe(
-      timeout(5000),
-      map(sub => sub.status as 'ACTIVE' | 'PENDING' | 'NONE'),
+  getSubscriptionStatus(): Observable<'ACTIVE' | 'PENDING' | 'NONE'> {
+    return this.getCurrentUserSubscription().pipe(
+      map(sub => (sub?.status as 'ACTIVE' | 'PENDING' | 'NONE') || 'NONE'),
       catchError(() => of('NONE' as const))
     );
   }
 
-  checkSubscriptionStatus(email: string, authorId: string | number): Observable<boolean> {
-    return this.getSubscriptionStatus(email, authorId).pipe(
+  checkSubscriptionStatus(): Observable<boolean> {
+    return this.getSubscriptionStatus().pipe(
       map(status => status === 'ACTIVE')
     );
   }
 
-  unsubscribeByEmail(email: string, authorId: string | number): Observable<string> {
-    return this.http.delete(`${this.apiUrl}/unsubscribe/${email}`, { 
-      params: { authorId: authorId.toString() },
-      responseType: 'text' 
+  unsubscribeCurrentUser(): Observable<string> {
+    return this.http.post(`${this.apiUrl}/unsubscribe-current`, null, {
+      responseType: 'text'
     });
   }
 
-  getAnalytics(authorId?: string | number): Observable<NewsletterAnalytics> {
-    let params: any = {};
-    if (authorId) {
-      params.authorId = authorId.toString();
-    }
-    return this.http.get<NewsletterAnalytics>(`${this.apiUrl}/analytics`, { params });
+  getAnalytics(): Observable<NewsletterAnalytics> {
+    return this.http.get<NewsletterAnalytics>(`${this.apiUrl}/analytics`);
   }
 
   searchSubscribers(params: {

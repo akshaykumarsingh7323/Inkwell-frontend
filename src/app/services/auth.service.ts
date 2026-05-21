@@ -215,6 +215,10 @@ export class AuthService {
     );
   }
 
+  submitAuthorRequest(request: { role: string; username?: string; phoneNumber?: string; acceptedTerms?: boolean }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/author-requests`, request);
+  }
+
   deactivateAccount(): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/deactivate`);
   }

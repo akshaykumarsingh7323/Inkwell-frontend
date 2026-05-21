@@ -98,7 +98,7 @@
         </div>
 
         <div class="article-card-media">
-          <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" [alt]="post.title">
+          <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl | mediaUrl" [alt]="post.title">
           <div *ngIf="!post.featuredImageUrl" class="search-results__placeholder"></div>
           
           <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
@@ -139,42 +139,105 @@
       </div>
     </section>
 
+    <!-- 🆕 LATEST POSTS -->
+    <section class="discovery-section">
+      <div class="section-heading-row">
+        <h2 class="section-title">{{ getSortLabel() }} Posts</h2>
+      </div>
+      <div class="posts-grid">
+        <div class="post-card" 
+             *ngFor="let post of latestPosts" 
+             [class]="getCategoryName(post.categoryId)"
+             (click)="handlePostClick(post, $event)"
+             style="cursor: pointer;">
+          
+          <div class="pc-image">
+            <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked && !isAdmin(currentUser$ | async)">
+            </div>
+            <span class="pc-cat-badge" [class]="getCategoryName(post.categoryId)">{{ getCategoryName(post.categoryId) }}</span>
+            
+            <div class="pc-img-status" *ngIf="post.isPremium">
+              <button class="pc-buy-overlay" *ngIf="!post.accessUnlocked && !isAdmin(currentUser$ | async)">
+                <span class="buy-label">Buy Now</span>
+                <span class="buy-price">₹{{ post.price }}</span>
+              </button>
+              <div class="pc-purchased-overlay" *ngIf="post.accessUnlocked">
+                <span class="material-symbols-outlined">check_circle</span> Purchased
+              </div>
+              <div class="pc-purchased-overlay" style="background: rgba(0,0,0,0.7);" *ngIf="!post.accessUnlocked && isAdmin(currentUser$ | async)">
+                <span class="material-symbols-outlined">workspace_premium</span> Premium
+              </div>
+            </div>
+          </div>
+
+          <div class="pc-body">
+            <div class="pc-title">{{ post.title }}</div>
+
+            <div class="pc-foot">
+              <div class="pc-author">
+                <span class="au-name">By {{ post.authorName || 'InkWell Writer' }}</span>
+              </div>
+              <div class="pc-stats">
+                <span class="pc-stat">👁️ {{ post.viewCount || 0 }}</span>
+                <span class="pc-stat">❤️ {{ post.likesCount || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="load-more-row">
+        <button class="btn-load-more">Load More Stories</button>
+      </div>
+    </section>
+
     <!-- 🔥 TRENDING POSTS -->
     <section class="discovery-section">
       <div class="section-heading-row">
         <h2 class="section-title">Trending Now</h2>
         <span class="trending-icon">🔥</span>
       </div>
-      <div class="discovery-grid">
-        <a *ngFor="let post of trendingPosts" class="discovery-card" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
-          <div class="card-image">
-            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" alt="">
-            <div *ngIf="!post.featuredImageUrl" class="image-placeholder"></div>
-            <div class="card-badge">TRENDING</div>
-            
-            <!-- Premium Overlay for Locked Content -->
-            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
-              <div class="pio-price">₹{{ post.price }}</div>
-              <div class="pio-text">ONLY FOR</div>
+      <div class="posts-grid">
+        <div class="post-card" 
+             *ngFor="let post of trendingPosts" 
+             [class]="getCategoryName(post.categoryId)"
+             (click)="handlePostClick(post, $event)"
+             style="cursor: pointer;">
+          
+          <div class="pc-image">
+            <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked && !isAdmin(currentUser$ | async)">
             </div>
+            <span class="pc-cat-badge" [class]="getCategoryName(post.categoryId)">{{ getCategoryName(post.categoryId) }}</span>
             
-            <!-- Premium Overlay for Purchased Content -->
-            <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
-              <span class="material-symbols-outlined" style="font-size: 3rem; color: #fff;">check_circle</span>
-              <div class="pio-text">PURCHASED</div>
-            </div>
-          </div>
-          <div class="card-content">
-            <h3 class="card-title">{{ post.title }}</h3>
-            <div class="card-meta">
-              <span class="author">By {{ post.authorName || 'InkWell Writer' }}</span>
-              <div class="stats">
-                <span>👁️ {{ post.viewCount || 0 }}</span>
-                <span>❤️ {{ post.likesCount || 0 }}</span>
+            <div class="pc-img-status" *ngIf="post.isPremium">
+              <button class="pc-buy-overlay" *ngIf="!post.accessUnlocked && !isAdmin(currentUser$ | async)">
+                <span class="buy-label">Buy Now</span>
+                <span class="buy-price">₹{{ post.price }}</span>
+              </button>
+              <div class="pc-purchased-overlay" *ngIf="post.accessUnlocked">
+                <span class="material-symbols-outlined">check_circle</span> Purchased
+              </div>
+              <div class="pc-purchased-overlay" style="background: rgba(0,0,0,0.7);" *ngIf="!post.accessUnlocked && isAdmin(currentUser$ | async)">
+                <span class="material-symbols-outlined">workspace_premium</span> Premium
               </div>
             </div>
           </div>
-        </a>
+
+          <div class="pc-body">
+            <div class="pc-title">{{ post.title }}</div>
+
+            <div class="pc-foot">
+              <div class="pc-author">
+                <span class="au-name">By {{ post.authorName || 'InkWell Writer' }}</span>
+              </div>
+              <div class="pc-stats">
+                <span class="pc-stat">👁️ {{ post.viewCount || 0 }}</span>
+                <span class="pc-stat">❤️ {{ post.likesCount || 0 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -183,29 +246,47 @@
       <div class="section-heading-row">
         <h2 class="section-title">Recommended For You</h2>
       </div>
-      <div class="discovery-grid">
-        <a *ngFor="let post of recommendedPosts" class="discovery-card" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
-          <div class="card-image">
-            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" alt="">
-            <div *ngIf="!post.featuredImageUrl" class="image-placeholder"></div>
-            
-            <!-- Premium Overlay for Locked Content -->
-            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
-              <div class="pio-price">₹{{ post.price }}</div>
-              <div class="pio-text">ONLY FOR</div>
+      <div class="posts-grid">
+        <div class="post-card" 
+             *ngFor="let post of recommendedPosts" 
+             [class]="getCategoryName(post.categoryId)"
+             (click)="handlePostClick(post, $event)"
+             style="cursor: pointer;">
+          
+          <div class="pc-image">
+            <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked && !isAdmin(currentUser$ | async)">
             </div>
+            <span class="pc-cat-badge" [class]="getCategoryName(post.categoryId)">{{ getCategoryName(post.categoryId) }}</span>
             
-            <!-- Premium Overlay for Purchased Content -->
-            <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
-              <span class="material-symbols-outlined" style="font-size: 3rem; color: #fff;">check_circle</span>
-              <div class="pio-text">PURCHASED</div>
+            <div class="pc-img-status" *ngIf="post.isPremium">
+              <button class="pc-buy-overlay" *ngIf="!post.accessUnlocked && !isAdmin(currentUser$ | async)">
+                <span class="buy-label">Buy Now</span>
+                <span class="buy-price">₹{{ post.price }}</span>
+              </button>
+              <div class="pc-purchased-overlay" *ngIf="post.accessUnlocked">
+                <span class="material-symbols-outlined">check_circle</span> Purchased
+              </div>
+              <div class="pc-purchased-overlay" style="background: rgba(0,0,0,0.7);" *ngIf="!post.accessUnlocked && isAdmin(currentUser$ | async)">
+                <span class="material-symbols-outlined">workspace_premium</span> Premium
+              </div>
             </div>
           </div>
-          <div class="card-content">
-            <h3 class="card-title">{{ post.title }}</h3>
-            <p class="card-excerpt">{{ post.excerpt | slice:0:80 }}...</p>
+
+          <div class="pc-body">
+            <div class="pc-title">{{ post.title }}</div>
+
+            <div class="pc-foot">
+              <div class="pc-author">
+                <span class="au-name">By {{ post.authorName || 'InkWell Writer' }}</span>
+              </div>
+              <div class="pc-stats">
+                <span class="pc-stat">👁️ {{ post.viewCount || 0 }}</span>
+                <span class="pc-stat">❤️ {{ post.likesCount || 0 }}</span>
+              </div>
+            </div>
           </div>
-        </a>
+        </div>
       </div>
     </section>
 
@@ -221,48 +302,7 @@
             <h4 class="author-name">{{ author.name }}</h4>
             <p class="author-bio">{{ author.bio }}</p>
           </a>
-          <button class="follow-btn" 
-                  [class.following]="author.isFollowing" 
-                  [disabled]="author.isFollowLoading"
-                  (click)="toggleFollow(author)">
-            {{ author.isFollowLoading ? 'Following...' : (author.isFollowing ? 'Following' : 'Follow') }}
-          </button>
         </div>
-      </div>
-    </section>
-
-    <!-- 🆕 LATEST POSTS -->
-    <section class="discovery-section">
-      <div class="section-heading-row">
-        <h2 class="section-title">Latest Posts</h2>
-      </div>
-      <div class="discovery-grid latest-grid">
-        <a *ngFor="let post of latestPosts" class="discovery-card horizontal" (click)="handlePostClick(post, $event)" style="cursor: pointer;">
-          <div class="card-image-sm">
-            <img *ngIf="post.featuredImageUrl" [src]="post.featuredImageUrl" alt="">
-            <div *ngIf="!post.featuredImageUrl" class="image-placeholder"></div>
-            
-            <!-- Premium Overlay for Locked Content -->
-            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked">
-              <div class="pio-price" style="font-size: 2.2rem;">₹{{ post.price }}</div>
-              <div class="pio-text" style="font-size: 0.7rem;">ONLY FOR</div>
-            </div>
-            
-            <!-- Premium Overlay for Purchased Content -->
-            <div class="premium-image-overlay purchased" *ngIf="post.isPremium && post.accessUnlocked">
-              <span class="material-symbols-outlined" style="font-size: 2rem; color: #fff;">check_circle</span>
-              <div class="pio-text" style="font-size: 0.7rem;">PURCHASED</div>
-            </div>
-          </div>
-          <div class="card-content">
-            <span class="card-category">{{ getCategoryName(post.categoryId) }}</span>
-            <h3 class="card-title">{{ post.title }}</h3>
-            <p class="card-excerpt">{{ post.excerpt | slice:0:100 }}...</p>
-          </div>
-        </a>
-      </div>
-      <div class="load-more-row">
-        <button class="btn-load-more">Load More Stories</button>
       </div>
     </section>
 

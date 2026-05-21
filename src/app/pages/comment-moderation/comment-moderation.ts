@@ -7,12 +7,12 @@ import { PublicUserProfile } from '../../models/user.model';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-comment-moderation',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './comment-moderation.html',
   styleUrl: './comment-moderation.css',
 })
@@ -63,13 +63,21 @@ export class CommentModeration implements OnInit {
       forkJoin(
         uniqueAuthorIds.map(id => 
           this.authService.getPublicProfile(id).pipe(
-            catchError(() => of(null))
+            catchError(() => of({
+              userId: String(id),
+              username: 'unknown_user',
+              fullName: 'Deleted User',
+              avatarUrl: 'assets/default-avatar.png',
+              bio: 'This user account was deleted.'
+            } as PublicUserProfile))
           )
         )
       ).subscribe(profiles => {
+        const newProfiles = { ...this.authorProfiles };
         profiles.forEach(p => {
-          if (p) this.authorProfiles[Number(p.userId)] = p;
+          if (p) newProfiles[Number(p.userId)] = p;
         });
+        this.authorProfiles = newProfiles;
       });
     }
 
@@ -82,9 +90,11 @@ export class CommentModeration implements OnInit {
           )
         )
       ).subscribe(posts => {
+        const newDetails = { ...this.postDetails };
         posts.forEach(p => {
-          if (p) this.postDetails[p.postId] = { title: p.title, slug: p.slug };
+          if (p) newDetails[p.postId] = { title: p.title, slug: p.slug };
         });
+        this.postDetails = newDetails;
       });
     }
   }
@@ -139,13 +149,13 @@ export class CommentModeration implements OnInit {
   }
 
   getInitial(authorId: number): string {
-    const name = this.authorProfiles[authorId]?.fullName || this.authorProfiles[authorId]?.username || String(authorId);
+    const name = this.authorProfiles[authorId]?.username || this.authorProfiles[authorId]?.fullName || String(authorId);
     return name.charAt(0).toUpperCase();
   }
 
   getAuthorName(authorId: number): string {
     const profile = this.authorProfiles[authorId];
-    return profile ? (profile.fullName || profile.username) : `User #${authorId}`;
+    return profile ? (profile.username || profile.fullName || `User #${authorId}`) : `User #${authorId}`;
   }
 
   getPostTitle(postId: number): string {

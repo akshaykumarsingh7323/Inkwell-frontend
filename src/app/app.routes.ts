@@ -43,6 +43,7 @@ import { NewsletterLanding } from './pages/newsletter-landing/newsletter-landing
 import { MyPurchases } from './pages/my-purchases/my-purchases';
 import { AdminRevenueDashboard } from './pages/admin-revenue-dashboard/admin-revenue-dashboard';
 import { AdminTrending } from './pages/admin-trending/admin-trending';
+import { AdminAuthorRequests } from './pages/admin-author-requests/admin-author-requests';
 
 export const routes: Routes = [
   { 
@@ -81,6 +82,7 @@ export const routes: Routes = [
       { path: 'admin-dashboard', component: AdminDashboard, canActivate: [authGuard, roleGuard(['ADMIN'])] },
       { path: 'admin-subscribers', component: AdminSubscribers, canActivate: [authGuard, roleGuard(['ADMIN'])] },
       { path: 'user-management', component: AdminUserManagement, canActivate: [authGuard, roleGuard(['ADMIN'])] },
+      { path: 'admin-author-requests', component: AdminAuthorRequests, canActivate: [authGuard, roleGuard(['ADMIN'])] },
       { path: 'admin-posts', component: AdminPostManagement, canActivate: [authGuard, roleGuard(['ADMIN'])] },
       { path: 'admin-comments', component: AdminCommentManagement, canActivate: [authGuard, roleGuard(['ADMIN'])] },
       { path: 'admin-categories', component: AdminTaxonomyManagement, canActivate: [authGuard, roleGuard(['ADMIN'])] },

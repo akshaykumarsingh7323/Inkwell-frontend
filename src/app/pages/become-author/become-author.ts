@@ -53,7 +53,7 @@ export class BecomeAuthor {
 
     const { username, phoneNumber, acceptedTerms } = this.becomeAuthorForm.value;
 
-    this.authService.selectRole({
+    this.authService.submitAuthorRequest({
       role: 'AUTHOR',
       username: username!,
       phoneNumber: phoneNumber!,
@@ -61,11 +61,12 @@ export class BecomeAuthor {
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        this.router.navigate(['/author-dashboard']);
+        alert('Request sent to Admin for approval. You will be notified once approved.');
+        this.router.navigate(['/']);
       },
       error: (err) => {
         this.isLoading = false;
-        this.errorMessage = err.error?.message || err.message || 'Failed to upgrade account. Please try again.';
+        this.errorMessage = err.error?.message || err.message || 'Failed to submit request. Please try again.';
         this.cdr.detectChanges();
       }
     });

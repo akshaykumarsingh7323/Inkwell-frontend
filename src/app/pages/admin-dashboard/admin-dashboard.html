@@ -11,54 +11,48 @@
 
   <div *ngIf="!isLoading && !errorMessage">
     <div class="page-header">
-      <div class="page-eyebrow">Admin Control Center</div>
       <h1 class="page-title">Platform Overview</h1>
-      <p class="page-subtitle"><span class="live-dot"></span>Live · Monitor adoption, content throughput, and newsletter reach</p>
     </div>
 
         <div class="stats-grid">
-          <div class="stat-card blue-tint">
+          <div class="stat-card blue-tint" routerLink="/user-management" style="cursor: pointer;">
             <div class="stat-card-inner">
               <div class="stat-main">
-                <span class="stat-label">Total Platform Users</span>
+                <span class="stat-label">Total Users</span>
                 <div class="stat-num">{{ totalUsers }}</div>
-                <div class="stat-meta"><span class="status-indicator live"></span> LIVE MONITORING</div>
               </div>
               <div class="stat-icon-box">👥</div>
             </div>
             <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalUsers / 100) * 100"></div></div>
           </div>
 
-          <div class="stat-card teal-tint">
+          <div class="stat-card teal-tint" routerLink="/admin-posts" style="cursor: pointer;">
             <div class="stat-card-inner">
               <div class="stat-main">
-                <span class="stat-label">Published Posts</span>
+                <span class="stat-label">Total Posts</span>
                 <div class="stat-num">{{ totalPublishedPosts }}</div>
-                <div class="stat-meta"><span class="status-indicator active"></span> CONTENT FLOW</div>
               </div>
               <div class="stat-icon-box">📝</div>
             </div>
             <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalPublishedPosts / 50) * 100"></div></div>
           </div>
 
-          <div class="stat-card violet-tint">
+          <div class="stat-card violet-tint" routerLink="/admin-comments" style="cursor: pointer;">
             <div class="stat-card-inner">
               <div class="stat-main">
                 <span class="stat-label">Pending Comments</span>
                 <div class="stat-num">{{ totalPendingComments }}</div>
-                <div class="stat-meta"><span class="status-indicator warning"></span> MODERATION QUEUE</div>
               </div>
               <div class="stat-icon-box">💬</div>
             </div>
             <div class="stat-footer-bar"><div class="stat-progress" [style.width.%]="(totalPendingComments / 10) * 100"></div></div>
           </div>
 
-          <div class="stat-card green-tint">
+          <div class="stat-card green-tint" routerLink="/admin-subscribers" style="cursor: pointer;">
             <div class="stat-card-inner">
               <div class="stat-main">
-                <span class="stat-label">Active Subscribers</span>
+                <span class="stat-label">Total Subscribers</span>
                 <div class="stat-num">{{ totalSubscribers }}</div>
-                <div class="stat-meta"><span class="status-indicator success"></span> REACH METRICS</div>
               </div>
               <div class="stat-icon-box">✉</div>
             </div>
@@ -70,7 +64,6 @@
         <div class="management-hub">
           <div class="hub-header">
             <h2 class="hub-title">Management Hub</h2>
-            <p class="hub-subtitle">Direct access to core platform administrative modules</p>
           </div>
           <div class="hub-grid">
             <a routerLink="/user-management" class="hub-card">
@@ -144,39 +137,5 @@
           </div>
         </div>
 
-        <div class="wide-panel">
-          <div class="panel-header"><span class="panel-title">Platform Health</span><span class="panel-badge">REAL-TIME</span></div>
-          <div class="status-row">
-            <div class="status-item"><div class="status-label">Content Rate</div><div class="status-val">{{ totalPublishedPosts }}</div><div class="status-sub">posts total</div></div>
-            <div class="status-item">
-              <div class="status-label">Subscriber Rate</div>
-              <div class="status-val">{{ totalUsers > 0 ? (totalSubscribers / totalUsers * 100 | number:'1.0-0') : 0 }}%</div>
-              <div class="status-sub">user to subscriber</div>
-            </div>
-            <div class="status-item">
-              <div class="status-label">Notifications</div>
-              <div class="status-val">{{ totalNotifications }}</div>
-              <div class="status-sub">system alerts</div>
-            </div>
-          </div>
-          <div style="padding:16px 20px 20px;border-top:1px solid var(--border)">
-            <div style="font-size:11px;color:var(--text-muted);margin-bottom:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.08em">ACTIVITY TREND — REAL-TIME MONITOR</div>
-            <div class="mini-chart">
-              <div class="bar" style="height:30%"></div>
-              <div class="bar" style="height:50%"></div>
-              <div class="bar" style="height:40%"></div>
-              <div class="bar highlight" style="height:80%"></div>
-              <div class="bar" style="height:60%"></div>
-              <div class="bar highlight" style="height:100%"></div>
-              <div class="bar highlight" style="height:90%"></div>
-            </div>
-            <div style="display:flex;justify-content:space-between;margin-top:8px">
-              <span style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">T-6h</span>
-              <span style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">T-4h</span>
-              <span style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">T-2h</span>
-              <span style="font-size:10px;color:var(--text-muted);font-family:'JetBrains Mono',monospace">Now</span>
-            </div>
-          </div>
-        </div>
     </div>
 </main>

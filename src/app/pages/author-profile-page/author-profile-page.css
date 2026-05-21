@@ -13,7 +13,7 @@
   min-height: 100vh;
   background-color: var(--bg);
   background-image: radial-gradient(circle at 0% 0%, rgba(0, 70, 67, 0.05) 0%, transparent 50%),
-                    radial-gradient(circle at 100% 100%, rgba(248, 192, 46, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 100% 100%, rgba(248, 192, 46, 0.05) 0%, transparent 50%);
   padding: 0;
 }
 
@@ -195,7 +195,8 @@
   letter-spacing: 0.05em;
 }
 
-.auth-input, .author-editor__textarea {
+.auth-input,
+.author-editor__textarea {
   padding: 14px 18px;
   border: 2px solid #eee;
   border-radius: 10px;
@@ -205,7 +206,8 @@
   transition: all 0.3s;
 }
 
-.auth-input:focus, .author-editor__textarea:focus {
+.auth-input:focus,
+.author-editor__textarea:focus {
   border-color: var(--primary);
   background: white;
   box-shadow: 0 0 0 4px rgba(0, 70, 67, 0.05);
@@ -362,7 +364,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Verified Badge */
@@ -394,7 +398,8 @@
   justify-content: center;
 }
 
-.otp-modal, .success-modal {
+.otp-modal,
+.success-modal {
   background: white;
   border-radius: 20px;
   padding: 40px 30px;
@@ -407,8 +412,15 @@
 }
 
 @keyframes modalPop {
-  from { opacity: 0; transform: scale(0.95) translateY(10px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 
 .close-modal-btn {
@@ -454,7 +466,8 @@
   font-weight: bold;
 }
 
-.otp-modal h2, .success-modal h2 {
+.otp-modal h2,
+.success-modal h2 {
   font-family: var(--font-sans);
   color: #1e293b;
   font-size: 24px;
@@ -462,7 +475,8 @@
   margin-bottom: 10px;
 }
 
-.otp-modal p, .success-modal p {
+.otp-modal p,
+.success-modal p {
   color: #64748b;
   font-size: 14px;
   line-height: 1.5;
@@ -539,12 +553,12 @@
   .form-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .author-hero {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .author-hero__identity {
     flex-direction: column;
     gap: 20px;

@@ -2,7 +2,7 @@
         <div class="hero">
           <div class="hero-top">
             <div>
-              <div class="hero-title">Welcome, {{ (currentUser$ | async) ? getGreetingName((currentUser$ | async)) : 'Guest' }} 👋</div>
+              <div class="hero-title">Welcome, {{ (currentUser$ | async) ? getGreetingName((currentUser$ | async)) : 'Guest' }}</div>
               <div class="hero-sub">{{ filteredPosts().length }} posts available for today</div>
             </div>
             <div class="search-wrap">
@@ -61,20 +61,20 @@
           
           <!-- Added Image Section -->
           <div class="pc-image">
-            <img [src]="post.featuredImageUrl || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
-            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked && !isAdmin(currentUser$ | async)">
+            <img [src]="(post.featuredImageUrl | mediaUrl) || 'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=800&q=80'" [alt]="post.title">
+            <div class="premium-image-overlay" *ngIf="post.isPremium && !post.accessUnlocked && !canAccessPremiumWithoutPayment(post, (currentUser$ | async))">
             </div>
             <span class="pc-cat-badge" [class]="getCategoryName(post.categoryId)">{{ getCategoryName(post.categoryId) }}</span>
             
             <div class="pc-img-status" *ngIf="post.isPremium">
-              <button class="pc-buy-overlay" *ngIf="!post.accessUnlocked && !isAdmin(currentUser$ | async)">
+              <button class="pc-buy-overlay" *ngIf="!post.accessUnlocked && !canAccessPremiumWithoutPayment(post, (currentUser$ | async))">
                 <span class="buy-label">Buy Now</span>
                 <span class="buy-price">₹{{ post.price }}</span>
               </button>
               <div class="pc-purchased-overlay" *ngIf="post.accessUnlocked">
                 <span class="material-symbols-outlined">check_circle</span> Purchased
               </div>
-              <div class="pc-purchased-overlay" style="background: rgba(0,0,0,0.7);" *ngIf="!post.accessUnlocked && isAdmin(currentUser$ | async)">
+              <div class="pc-purchased-overlay" style="background: rgba(0,0,0,0.7);" *ngIf="!post.accessUnlocked && canAccessPremiumWithoutPayment(post, (currentUser$ | async))">
                 <span class="material-symbols-outlined">workspace_premium</span> Premium
               </div>
             </div>
