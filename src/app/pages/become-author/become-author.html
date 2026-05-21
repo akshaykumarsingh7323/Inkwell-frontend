@@ -33,7 +33,23 @@
 
     <!-- Right Side: The Form -->
     <div class="right-panel">
-      <form [formGroup]="becomeAuthorForm" (ngSubmit)="onSubmit()" class="auth-form">
+      <!-- Loading State -->
+      <div *ngIf="isCheckingPending" style="display: flex; justify-content: center; align-items: center; height: 100%;">
+        <div class="spinner-small" style="border-top-color: var(--primary); width: 2rem; height: 2rem; border-width: 3px;"></div>
+      </div>
+
+      <!-- Pending State -->
+      <div *ngIf="!isCheckingPending && hasPendingRequest" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100%; text-align: center;">
+        <span class="material-symbols-outlined" style="font-size: 4rem; color: #f5b041; margin-bottom: 1rem;">pending_actions</span>
+        <h2 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Request Pending</h2>
+        <p style="color: var(--on-surface-muted); margin-bottom: 2rem; line-height: 1.5;">
+          You have already submitted an author request. Please wait for an admin to review and approve your application.
+        </p>
+        <button class="auth-submit-btn" routerLink="/" style="width: auto; padding: 0.75rem 2rem;">Back to Home</button>
+      </div>
+
+      <!-- Form State -->
+      <form *ngIf="!isCheckingPending && !hasPendingRequest" [formGroup]="becomeAuthorForm" (ngSubmit)="onSubmit()" class="auth-form">
         
         <!-- Feedback Banner -->
         <div *ngIf="errorMessage" class="auth-feedback error" role="alert">

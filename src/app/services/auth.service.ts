@@ -219,6 +219,10 @@ export class AuthService {
     return this.http.post(`${this.apiUrl}/author-requests`, request);
   }
 
+  checkPendingAuthorRequest(): Observable<{ hasPendingRequest: boolean }> {
+    return this.http.get<{ hasPendingRequest: boolean }>(`${this.apiUrl}/author-requests/me`);
+  }
+
   deactivateAccount(): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/deactivate`);
   }

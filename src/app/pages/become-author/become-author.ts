@@ -33,6 +33,8 @@ export class BecomeAuthor {
   errorMessage: string | null = null;
   isLoading = false;
   userEmail: string = '';
+  hasPendingRequest = false;
+  isCheckingPending = true;
 
   constructor() {
     const user = this.authService.getCurrentUserSnapshot();
@@ -43,6 +45,20 @@ export class BecomeAuthor {
     } else {
       this.router.navigate(['/login']);
     }
+  }
+
+  ngOnInit() {
+    this.authService.checkPendingAuthorRequest().subscribe({
+      next: (res) => {
+        this.hasPendingRequest = res.hasPendingRequest;
+        this.isCheckingPending = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.isCheckingPending = false;
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   onSubmit(): void {
