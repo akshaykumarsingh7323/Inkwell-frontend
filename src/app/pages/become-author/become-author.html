@@ -116,3 +116,19 @@
     </div>
   </div>
 </div>
+
+<!-- Success Modal -->
+<div class="modal-overlay" *ngIf="showSuccessModal" (click)="closeSuccessModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()" style="text-align: center; padding: 2rem;">
+    <div style="display: flex; justify-content: center; margin-bottom: 1.5rem;">
+      <div style="width: 4rem; height: 4rem; border-radius: 50%; background: rgba(52, 168, 83, 0.1); color: #34A853; display: flex; align-items: center; justify-content: center;">
+        <span class="material-symbols-outlined" style="font-size: 2.5rem;">check_circle</span>
+      </div>
+    </div>
+    <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--on-surface); margin-bottom: 0.5rem;">Request Sent!</h3>
+    <p style="color: var(--on-surface-muted); margin-bottom: 2rem; line-height: 1.5;">
+      Your request to become an author has been submitted to the Admin for approval. You will be notified once it is approved.
+    </p>
+    <button class="auth-submit-btn" (click)="closeSuccessModal()" style="width: 100%;">Got it, thanks!</button>
+  </div>
+</div>

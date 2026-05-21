@@ -35,6 +35,7 @@ export class BecomeAuthor {
   userEmail: string = '';
   hasPendingRequest = false;
   isCheckingPending = true;
+  showSuccessModal = false;
 
   constructor() {
     const user = this.authService.getCurrentUserSnapshot();
@@ -77,8 +78,8 @@ export class BecomeAuthor {
     }).subscribe({
       next: () => {
         this.isLoading = false;
-        alert('Request sent to Admin for approval. You will be notified once approved.');
-        this.router.navigate(['/']);
+        this.showSuccessModal = true;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.isLoading = false;
@@ -86,5 +87,10 @@ export class BecomeAuthor {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  closeSuccessModal(): void {
+    this.showSuccessModal = false;
+    this.router.navigate(['/']);
   }
 }
