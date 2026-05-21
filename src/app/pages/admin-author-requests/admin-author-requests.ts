@@ -28,6 +28,9 @@ export class AdminAuthorRequests implements OnInit {
   requests: AuthorRequest[] = [];
   isLoading = true;
   error: string | null = null;
+  showConfirmModal = false;
+  confirmAction: 'approve' | 'reject' | null = null;
+  selectedRequestId: number | null = null;
 
   ngOnInit(): void {
     this.fetchRequests();
@@ -48,27 +51,44 @@ export class AdminAuthorRequests implements OnInit {
     });
   }
 
-  approveRequest(id: number): void {
-    if (!confirm('Are you sure you want to approve this request?')) return;
-    this.http.put(`${this.apiUrl}/${id}/approve`, {}).subscribe({
-      next: () => {
-        this.requests = this.requests.filter(r => r.id !== id);
-      },
-      error: (err) => {
-        alert('Failed to approve request');
-      }
-    });
+  openConfirmModal(action: 'approve' | 'reject', id: number): void {
+    this.confirmAction = action;
+    this.selectedRequestId = id;
+    this.showConfirmModal = true;
   }
 
-  rejectRequest(id: number): void {
-    if (!confirm('Are you sure you want to reject this request?')) return;
-    this.http.put(`${this.apiUrl}/${id}/reject`, {}).subscribe({
-      next: () => {
-        this.requests = this.requests.filter(r => r.id !== id);
-      },
-      error: (err) => {
-        alert('Failed to reject request');
-      }
-    });
+  closeConfirmModal(): void {
+    this.showConfirmModal = false;
+    this.confirmAction = null;
+    this.selectedRequestId = null;
+  }
+
+  executeConfirmAction(): void {
+    if (!this.selectedRequestId || !this.confirmAction) return;
+
+    const id = this.selectedRequestId;
+    const action = this.confirmAction;
+
+    this.closeConfirmModal();
+
+    if (action === 'approve') {
+      this.http.put(`${this.apiUrl}/${id}/approve`, {}).subscribe({
+        next: () => {
+          this.requests = this.requests.filter(r => r.id !== id);
+        },
+        error: (err) => {
+          alert('Failed to approve request');
+        }
+      });
+    } else if (action === 'reject') {
+      this.http.put(`${this.apiUrl}/${id}/reject`, {}).subscribe({
+        next: () => {
+          this.requests = this.requests.filter(r => r.id !== id);
+        },
+        error: (err) => {
+          alert('Failed to reject request');
+        }
+      });
+    }
   }
 }

@@ -43,13 +43,35 @@
             <td>{{ req.createdAt | date:'mediumDate' }}</td>
             <td style="text-align: right;">
               <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                <button class="btn btn-primary" style="padding: 0.375rem 0.75rem; font-size: 0.8125rem; border-radius: 6px;" (click)="approveRequest(req.id)">Accept</button>
-                <button class="btn" style="padding: 0.375rem 0.75rem; font-size: 0.8125rem; border-radius: 6px; background: rgba(220, 53, 69, 0.1); color: #dc3545; border-color: transparent;" (click)="rejectRequest(req.id)">Reject</button>
+                <button class="btn btn-primary" style="padding: 0.375rem 0.75rem; font-size: 0.8125rem; border-radius: 6px;" (click)="openConfirmModal('approve', req.id)">Accept</button>
+                <button class="btn" style="padding: 0.375rem 0.75rem; font-size: 0.8125rem; border-radius: 6px; background: rgba(220, 53, 69, 0.1); color: #dc3545; border-color: transparent;" (click)="openConfirmModal('reject', req.id)">Reject</button>
               </div>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showConfirmModal" (click)="closeConfirmModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>Confirm Action</h3>
+      <button class="close-btn" (click)="closeConfirmModal()">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p style="margin-bottom: 0.5rem;">Are you sure you want to <strong>{{ confirmAction === 'approve' ? 'approve' : 'reject' }}</strong> this author request?</p>
+      <p *ngIf="confirmAction === 'approve'" style="font-size: 0.875rem; color: var(--on-surface-muted);">The user will be granted author privileges and notified via email.</p>
+      <p *ngIf="confirmAction === 'reject'" style="font-size: 0.875rem; color: var(--on-surface-muted);">The user's request will be declined and they will be notified.</p>
+    </div>
+    <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+      <button class="btn" (click)="closeConfirmModal()" style="background: transparent; border: 1px solid var(--border-color); color: var(--on-surface);">Cancel</button>
+      <button class="btn btn-primary" *ngIf="confirmAction === 'approve'" (click)="executeConfirmAction()">Yes, Approve</button>
+      <button class="btn" *ngIf="confirmAction === 'reject'" (click)="executeConfirmAction()" style="background: #dc3545; color: white;">Yes, Reject</button>
     </div>
   </div>
 </div>
