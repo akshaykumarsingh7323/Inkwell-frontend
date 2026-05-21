@@ -28,15 +28,14 @@
             </svg>
             All Posts
           </button>
-          <button class="ni" routerLink="/become-author" routerLinkActive="active" *ngIf="currentUser$ | async as user">
-            <ng-container *ngIf="!isAdmin(user) && !isAuthor(user)">
-              <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
-              Create Post
-            </ng-container>
-          </button>
         </div>
         
         <div class="ns" *ngIf="currentUser$ | async as user">
+          <button class="ni" routerLink="/become-author" routerLinkActive="active" *ngIf="!isAdmin(user) && !isAuthor(user)">
+            <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 3v10M3 8h10"/></svg>
+            Create Post
+          </button>
+
           <button class="ni" routerLink="/my-purchases" routerLinkActive="active" *ngIf="!isAdmin(user)">
             <svg class="ni-ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M3 4h10a1 1 0 011 1v7a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z"/>
