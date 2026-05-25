@@ -45,7 +45,7 @@
     <section class="author-public-info" style="margin-top: 2rem; padding: 2rem; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
       <h3 style="margin-bottom: 1rem; color: #004643;">About {{ getDisplayName() }}</h3>
       <p style="font-size: 1.1rem; color: #334155; line-height: 1.6; margin-bottom: 1.5rem;">
-        {{ author.bio || 'This author has not added a bio yet.' }}
+        {{ author.bio || (author.role === 'READER' ? 'This reader has not added a bio yet.' : 'This author has not added a bio yet.') }}
       </p>
       <div class="author-stats" *ngIf="shouldShowPostsSection()" style="display: flex; gap: 2rem; border-top: 1px solid #e2e8f0; padding-top: 1rem;">
         <div>

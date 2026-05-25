@@ -37,10 +37,9 @@ export class MyPurchases implements OnInit {
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       if (user) {
-        this.paymentService.getUserPayments(user.userId).subscribe({
+        this.paymentService.getMyPurchasedPosts().subscribe({
           next: (payments) => {
-            const successfulPayments = payments.filter(payment => payment.status === 'SUCCESS');
-            this.loadPurchasedPostDetails(successfulPayments);
+            this.loadPurchasedPostDetails(payments);
           },
           error: () => this.isLoading = false
         });

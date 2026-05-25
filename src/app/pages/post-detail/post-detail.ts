@@ -108,6 +108,11 @@ export class PostDetail implements OnInit {
             this.isLocked = true;
             this.lockMessage = lockData.message;
             this.previewContent = lockData.preview;
+            
+            // Automatically prompt for payment
+            setTimeout(() => {
+              this.buyPost(true);
+            }, 100);
           } catch (e) {
             this.isLocked = false;
           }
@@ -226,28 +231,33 @@ export class PostDetail implements OnInit {
     this.location.back();
   }
 
-  buyPost(): void {
+  buyPost(autoTrigger: boolean = false): void {
     if (!this.post) return;
-    
-    this.authService.currentUser$.pipe(take(1)).subscribe(user => {
-      if (!user) {
-        this.authService.redirectToLogin(this.router.url);
+
+    this.confirmationService.confirm({
+      title: 'Do you want to pay?',
+      message: `This premium post requires payment to unlock. Continue to pay ₹${this.post!.price || 0}?`,
+      confirmText: 'Yes, Pay Now',
+      cancelText: 'No',
+      type: 'warning'
+    }).then((confirmed) => {
+      if (!confirmed) {
+        if (autoTrigger) {
+          this.goBack();
+        }
         return;
       }
 
-      if (user.role === 'ADMIN' || user.userId === String(this.post!.authorId)) {
-        window.location.reload();
-        return;
-      }
+      this.authService.currentUser$.pipe(take(1)).subscribe(user => {
+        if (!user) {
+          this.authService.redirectToLogin(this.router.url);
+          return;
+        }
 
-      this.confirmationService.confirm({
-        title: 'Do you want to pay?',
-        message: `This premium post requires payment to unlock. Continue to pay ₹${this.post!.price || 0}?`,
-        confirmText: 'Yes, Pay Now',
-        cancelText: 'No',
-        type: 'warning'
-      }).then((confirmed) => {
-        if (!confirmed) return;
+        if (user.role === 'ADMIN' || user.userId === String(this.post!.authorId)) {
+          window.location.reload();
+          return;
+        }
 
         this.paymentService.createOrder(
           user.userId, 

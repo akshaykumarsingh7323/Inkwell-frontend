@@ -151,9 +151,18 @@ export class AdminPostManagement implements OnInit {
     });
   }
 
-  unpublishPost(id: number): void {
+  async unpublishPost(id: number) {
     const post = this.posts.find(p => p.postId === id);
     if (!post) return;
+
+    const confirmed = await this.confirmationService.confirm({
+      title: 'Unpublish Post',
+      message: `Are you sure you want to unpublish "${post.title}"? This will move the post to drafts and notify the author.`,
+      confirmText: 'Unpublish Post',
+      type: 'warning'
+    });
+
+    if (!confirmed) return;
 
     // Use snapshot to avoid observable timing issues
     const admin = this.authService.getCurrentUserSnapshot();
@@ -211,4 +220,3 @@ export class AdminPostManagement implements OnInit {
     }
   }
 }
-

@@ -362,7 +362,7 @@ export class AuthorProfilePageComponent implements OnInit {
 
   shouldShowPostsSection(): boolean {
     const role = (this.author?.role || '').toUpperCase();
-    return role !== 'ADMIN';
+    return role !== 'ADMIN' && role !== 'READER';
   }
 
   getCategoryName(categoryId?: number): string {

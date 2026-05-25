@@ -6,7 +6,7 @@
 </div>
 
 <main class="post-main" *ngIf="!isLoading && post">
-  <div class="post-article-container">
+  <div class="post-article-container" *ngIf="!isLocked">
     <button class="back-btn" (click)="goBack()">
       <span class="material-symbols-outlined">arrow_back</span>
       <span>Back to Feed</span>
@@ -25,23 +25,9 @@
 
 
       <!-- 3. Article Content -->
-      <div class="post-content-body" *ngIf="!isLocked" [innerHTML]="post.content"></div>
-      
-      <div class="premium-lock-container" *ngIf="isLocked">
-        <div class="locked-content-preview" [innerHTML]="previewContent"></div>
-        <div class="lock-overlay">
-          <div class="lock-card">
-            <span class="material-symbols-outlined lock-icon">lock</span>
-            <h3>Premium Content</h3>
-            <p>{{ lockMessage }}</p>
-            <button class="buy-btn" (click) = "buyPost()">
-              Unlock for ₹{{ post.price }}
-            </button>
-          </div>
-        </div>
-      </div>
+      <div class="post-content-body" [innerHTML]="post.content"></div>
 
-      <div *ngIf="!isLocked">
+      <div>
         <div class="post-tags" *ngIf="tags.length > 0">
           <a *ngFor="let tag of tags" [routerLink]="['/tag', tag.slug]" class="tag-pill">#{{ tag.name }}</a>
         </div>
