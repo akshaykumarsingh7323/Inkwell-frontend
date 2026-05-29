@@ -25,7 +25,7 @@ export class BecomeAuthor {
     ]],
     phoneNumber: ['', [
       Validators.required,
-      Validators.pattern('^[0-9+ ]{10,15}$')
+      Validators.pattern('^[0-9]{10}$')
     ]],
     acceptedTerms: [false, [Validators.requiredTrue]]
   });
@@ -40,6 +40,10 @@ export class BecomeAuthor {
   constructor() {
     const user = this.authService.getCurrentUserSnapshot();
     if (user) {
+      if (this.authService.isAuthor(user) || this.authService.isAdmin(user)) {
+        this.router.navigate(['/']);
+        return;
+      }
       this.userEmail = user.email;
       // Pre-fill username if they already have one (from email prefix)
       this.becomeAuthorForm.patchValue({ username: user.username });
@@ -60,6 +64,13 @@ export class BecomeAuthor {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onPhoneInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const sanitized = input.value.replace(/[^0-9]/g, '').substring(0, 10);
+    this.becomeAuthorForm.patchValue({ phoneNumber: sanitized }, { emitEvent: false });
+    input.value = sanitized;
   }
 
   onSubmit(): void {

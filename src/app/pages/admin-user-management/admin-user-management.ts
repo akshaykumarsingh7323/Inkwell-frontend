@@ -22,20 +22,20 @@ export class AdminUserManagement implements OnInit {
   isLoading = signal<boolean>(true);
   errorMessage = signal<string>('');
   searchQuery = signal<string>('');
-  currentRoleFilter = signal<'ALL' | 'READER' | 'AUTHOR' | 'ADMIN'>('ALL');
+  currentRoleFilter = signal<'ALL' | 'READER' | 'AUTHOR' | 'ADMIN' | 'DELETED'>('ALL');
   selectedUser = signal<AuthResponse | null>(null);
+  deletedUsers = signal<AuthResponse[]>([]);
 
   currentUser$ = this.authService.currentUser$;
 
   // Computed signal for filtered users
   filteredUsers = computed(() => {
-    const allUsers = this.users();
     const filter = this.currentRoleFilter();
     const query = this.searchQuery().toLowerCase().trim();
 
-    let filtered = allUsers;
+    let filtered = filter === 'DELETED' ? this.deletedUsers() : this.users();
 
-    if (filter !== 'ALL') {
+    if (filter !== 'ALL' && filter !== 'DELETED') {
       filtered = filtered.filter(u => u.role?.toUpperCase() === filter);
     }
 
@@ -57,6 +57,14 @@ export class AdminUserManagement implements OnInit {
   protectionMessage = signal<{title: string, message: string}>({title: '', message: ''});
 
   ngOnInit(): void {
+    const savedDeleted = localStorage.getItem('deletedUsers');
+    if (savedDeleted) {
+      try {
+        this.deletedUsers.set(JSON.parse(savedDeleted));
+      } catch (e) {
+        console.error('Error parsing deleted users', e);
+      }
+    }
     this.loadUsers();
   }
 
@@ -73,7 +81,7 @@ export class AdminUserManagement implements OnInit {
       timeout(60000),
       catchError((error) => {
         console.error('Error fetching users:', error);
-        this.errorMessage.set('Failed to connect to the user management service. Please check if the Auth Service is running.');
+        this.errorMessage.set('An error occurred while loading data. Please try again later.');
         this.isLoading.set(false);
         return of([]);
       })
@@ -156,6 +164,11 @@ export class AdminUserManagement implements OnInit {
     this.authService.deleteUser(user.userId).subscribe({
       next: () => {
         this.users.update(current => current.filter(u => u.userId !== user.userId));
+        this.deletedUsers.update(current => {
+          const updated = [...current, user];
+          localStorage.setItem('deletedUsers', JSON.stringify(updated));
+          return updated;
+        });
         this.showDeleteModal.set(false);
         this.userToDelete.set(null);
         this.closeDetails();

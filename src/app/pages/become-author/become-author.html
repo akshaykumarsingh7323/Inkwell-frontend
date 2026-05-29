@@ -86,8 +86,13 @@
             id="author-phone"
             formControlName="phoneNumber"
             type="tel"
-            placeholder="+91 00000 00000"
+            maxlength="10"
+            (input)="onPhoneInput($event)"
+            placeholder="e.g. 9876543210"
           />
+          <div *ngIf="becomeAuthorForm.get('phoneNumber')?.invalid && becomeAuthorForm.get('phoneNumber')?.touched" style="color: #ea4335; font-size: 0.75rem; margin-top: 0.25rem;">
+            Please enter a valid 10-digit phone number.
+          </div>
         </div>
 
         <!-- Terms & Conditions -->

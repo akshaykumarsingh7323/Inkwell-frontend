@@ -18,9 +18,15 @@
       <button class="filter-chip" [class.active]="currentRoleFilter() === 'ADMIN'" (click)="currentRoleFilter.set('ADMIN')">Admins</button>
       <button class="filter-chip" [class.active]="currentRoleFilter() === 'AUTHOR'" (click)="currentRoleFilter.set('AUTHOR')">Authors</button>
       <button class="filter-chip" [class.active]="currentRoleFilter() === 'READER'" (click)="currentRoleFilter.set('READER')">Readers</button>
+      <button class="filter-chip" [class.active]="currentRoleFilter() === 'DELETED'" (click)="currentRoleFilter.set('DELETED')">Deleted Accounts</button>
     </div>
     <div class="filter-info" *ngIf="!isLoading()">
-      {{ filteredUsers().length }} accounts active
+      <span *ngIf="currentRoleFilter() === 'DELETED'">
+        {{ filteredUsers().length }} deleted account<span *ngIf="filteredUsers().length !== 1">s</span>
+      </span>
+      <span *ngIf="currentRoleFilter() !== 'DELETED'">
+        {{ filteredUsers().length }} accounts active
+      </span>
     </div>
   </div>
 
@@ -66,7 +72,7 @@
               </div>
             </td>
             <td>
-              <select class="role-selector" [value]="user.role" (change)="updateRole(user, $event)">
+              <select class="role-selector" [value]="user.role" (change)="updateRole(user, $event)" [disabled]="currentRoleFilter() === 'DELETED'">
                 <option value="READER">READER</option>
                 <option value="AUTHOR">AUTHOR</option>
                 <option value="ADMIN">ADMIN</option>
@@ -75,22 +81,27 @@
             <td style="text-align: right;">
               <div class="action-group">
                 <button class="action-link-btn view" (click)="viewUser(user)">Profile</button>
-                <button 
-                  class="action-link-btn" 
-                  [class.deactivate]="user.active !== false"
-                  [class.activate]="user.active === false"
-                  [class.disabled]="user.role === 'ADMIN' && user.active !== false"
-                  (click)="updateStatus(user, !(user.active !== false))"
-                >
-                  {{ user.active !== false ? 'Restrict' : 'Restore' }}
-                </button>
-                <button 
-                  class="action-link-btn delete" 
-                  [class.disabled]="user.role === 'ADMIN'"
-                  (click)="requestDelete(user)"
-                >
-                  Delete
-                </button>
+                <ng-container *ngIf="currentRoleFilter() !== 'DELETED'">
+                  <button 
+                    class="action-link-btn" 
+                    [class.deactivate]="user.active !== false"
+                    [class.activate]="user.active === false"
+                    [class.disabled]="user.role === 'ADMIN' && user.active !== false"
+                    (click)="updateStatus(user, !(user.active !== false))"
+                  >
+                    {{ user.active !== false ? 'Restrict' : 'Restore' }}
+                  </button>
+                  <button 
+                    class="action-link-btn delete" 
+                    [class.disabled]="user.role === 'ADMIN'"
+                    (click)="requestDelete(user)"
+                  >
+                    Delete
+                  </button>
+                </ng-container>
+                <ng-container *ngIf="currentRoleFilter() === 'DELETED'">
+                  <span class="action-link-btn disabled" style="cursor: not-allowed; opacity: 0.5;">Deleted</span>
+                </ng-container>
               </div>
             </td>
           </tr>
@@ -182,21 +193,23 @@
           View Publications
         </button>
 
-        <button 
-          class="outline-btn delete-btn" 
-          [class.disabled]="user.role === 'ADMIN'"
-          (click)="requestDelete(user)"
-        >
-          Delete Account
-        </button>
+        <ng-container *ngIf="currentRoleFilter() !== 'DELETED'">
+          <button 
+            class="outline-btn delete-btn" 
+            [class.disabled]="user.role === 'ADMIN'"
+            (click)="requestDelete(user)"
+          >
+            Delete Account
+          </button>
 
-        <button 
-          class="primary-btn" 
-          [class.disabled]="user.role === 'ADMIN' && user.active !== false"
-          (click)="updateStatus(user, !(user.active !== false))"
-        >
-          {{ user.active !== false ? 'Terminate Access' : 'Restore Access' }}
-        </button>
+          <button 
+            class="primary-btn" 
+            [class.disabled]="user.role === 'ADMIN' && user.active !== false"
+            (click)="updateStatus(user, !(user.active !== false))"
+          >
+            {{ user.active !== false ? 'Terminate Access' : 'Restore Access' }}
+          </button>
+        </ng-container>
       </div>
     </div>
   </div>
